@@ -29,6 +29,7 @@ from fcr.config import load_config, resolve_path
 from fcr.data.loader import BASE_FAMILY, build_schema_registry, discover_families, load_base, write_registry
 from fcr.data.paths import locate_competition_dir
 from fcr.data.synthetic import SyntheticSpec, generate_synthetic_dataset
+from fcr.runinfo import git_commit
 
 # From the public ETL write-up cited in REFERENCE.md Section 4; C3 re-derives them.
 EXPECTED_BASE_ROWS = 1_526_659
@@ -62,6 +63,7 @@ def main() -> int:
         kaggle_out = Path("/kaggle/working")
         out_path = (kaggle_out if kaggle_out.is_dir() else resolve_path(cfg.paths.results_dir)) / "schema_registry.json"
         print(f"mode: REAL at {root}")
+    print(f"commit {git_commit()}")
     table_dir = root / "parquet_files" / "train"
 
     print("\n== Families")

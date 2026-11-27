@@ -17,7 +17,7 @@ phase finishes.
 
 ```python
 REPO = "https://github.com/bahetiaditi/faithful_credit_reasons.git"
-SHA = "PASTE_COMMIT_SHA"
+SHA = "main"
 
 !rm -rf /tmp/fcr && git clone -q {REPO} /tmp/fcr && git -C /tmp/fcr checkout -q {SHA}
 !pip install -q -r /tmp/fcr/requirements.txt
@@ -26,7 +26,10 @@ SHA = "PASTE_COMMIT_SHA"
 !python /tmp/fcr/scripts/smoke_cNN.py
 ```
 
-`SHA` is the output of `git rev-parse --short HEAD` after pushing. Replace
+While iterating, `SHA = "main"` runs the latest push, and every smoke script
+prints the commit it actually ran, so the output stays traceable. A notebook
+committed to this folder at the end of a phase pins an exact SHA instead
+(`git rev-parse --short HEAD`), so it re-runs identically later. Replace
 `smoke_cNN.py` with the commit's own smoke script. Keep each notebook cell to
 exactly these lines; pasting a new cell onto the end of an old one joins the
 last line of one to the first of the next.
@@ -57,3 +60,17 @@ path.
 Scripts run with `!python` start a fresh process, so the new install is
 visible immediately. To `import fcr` inside the notebook's own kernel, add
 `import sys; sys.path.insert(0, "/tmp/fcr/src")` first.
+
+## Bringing results back
+
+Scripts that produce results write them under `/kaggle/working/cNN/` and zip
+them to `/kaggle/working/cNN_results.zip`. Download the zip from the
+notebook's Output panel, then from the repo root:
+
+```bash
+mkdir -p results/cNN
+unzip -o ~/Downloads/cNN_results.zip -d results/cNN
+```
+
+Only aggregates (counts, shares, column names, figures) are written there;
+applicant-level data never leaves Kaggle.

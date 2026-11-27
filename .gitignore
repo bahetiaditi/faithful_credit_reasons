@@ -20,6 +20,8 @@ data/*
 *.parquet
 *.csv
 !configs/**/*.csv
+# Small aggregate result tables are committed; data never is.
+!results/**/*.csv
 *.zip
 *.lgb
 *.joblib
