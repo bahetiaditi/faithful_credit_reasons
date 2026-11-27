@@ -1,0 +1,732 @@
+"""Tests for the provider layer (ported from Project 2 in C2).
+
+Uses fake backends throughout — no network, no API keys, no quota spent.
+Tests that would need real credentials are marked and skipped.
+"""
+import pytest
+
+from fcr.config import LLMConfig, load_config
+from fcr.llm.provider import (
+    LLMProvider,
+    ProviderError,
+    Role,
+    classify,
+    estimate_tokens,
+)
+from fcr.llm.rate_limit import QuotaExhausted, QuotaLedger
+
+T0 = 1_757_000_000.0
+
+
+# --- fakes -----------------------------------------------------------------
+
+
+class FakeStatusError(Exception):
+    def __init__(self, status_code, message="boom"):
+        super().__init__(message)
+        self.status_code = status_code
+
+
+class FakeBackend:
+    """Scripted backend. `script` is a list of str (success) or Exception."""
+
+    def __init__(self, name="groq", script=None, default="{\"ok\": true}"):
+        self.name = name
+        self.script = list(script or [])
+        self.default = default
+        self.calls = []
+
+    def complete(self, spec, system, user, temperature, max_output_tokens, json_mode):
+        self.calls.append(
+            {"model": spec.model, "system": system, "user": user,
+             "json_mode": json_mode, "max_output_tokens": max_output_tokens}
+        )
+        item = self.script.pop(0) if self.script else self.default
+        if isinstance(item, Exception):
+            raise item
+        return item, 100, 50
+
+
+def make_config(tmp_path, **over):
+    data = {
+        "llm": {
+            "default_temperature": 0.0,
+            "quota_ledger_path": "data/quota_ledger.json",
+            "cache": {"enabled": False, "dir": "cache"},
+            "retry": {
+                "max_attempts": 3,
+                "initial_backoff_s": 0.0,
+                "backoff_multiplier": 1.0,
+                "retry_on_status": [500, 502, 503, 504],
+                "max_quota_wait_s": 90.0,
+            },
+            "roles": {
+                "generation": [
+                    {"provider": "groq", "model": "primary", "max_output_tokens": 512,
+                     "limits": {"rpm": 30, "rpd": 1000, "tpm": 8000, "tpd": 200000}},
+                    {"provider": "groq", "model": "secondary", "max_output_tokens": 512,
+                     "limits": {"rpm": 30, "rpd": 1000, "tpm": 8000, "tpd": 200000}},
+                ],
+                "extraction": [
+                    {"provider": "groq", "model": "small", "max_output_tokens": 256,
+                     "limits": {"rpm": 30, "rpd": 1000, "tpm": 8000, "tpd": 200000}},
+                ],
+                "grader": [
+                    {"provider": "gemini", "model": "judge-model", "max_output_tokens": 256,
+                     "limits": {"rpm": 5, "rpd": 20, "tpm": 250000}},
+                ],
+            },
+        }
+    }
+    data["llm"].update(over)
+    return LLMConfig.model_validate(data["llm"])
+
+
+def build(tmp_path, backend=None, cache_enabled=False, **over):
+    cfg = make_config(tmp_path, **over)
+    backend = backend or FakeBackend()
+    specs = {}
+    from fcr.llm.rate_limit import ModelLimits
+    for chain in cfg.roles.values():
+        for spec in chain:
+            specs[spec.model] = ModelLimits.from_config(spec.limits.model_dump())
+    ledger = QuotaLedger(tmp_path / "q.json", specs)
+    slept = []
+    from fcr.llm.cache import PromptCache
+    provider = LLMProvider(
+        cfg,
+        backends={"groq": backend, "gemini": backend},
+        ledger=ledger,
+        sleep=slept.append,
+        now=lambda: T0,
+        cache=PromptCache(tmp_path / "cache", enabled=cache_enabled),
+    )
+    return provider, backend, ledger, slept
+
+
+# --- helpers ---------------------------------------------------------------
+
+
+def test_estimate_tokens_is_conservative():
+    est = estimate_tokens("s" * 350, "u" * 350, 500)
+    assert est > 500 + 175          # never under-counts the prompt
+
+
+@pytest.mark.parametrize("status,expected", [
+    (429, "switch_keep"), (401, "fatal"), (403, "fatal"), (400, "fatal"),
+    (500, "retry"), (503, "retry"),
+])
+def test_classify_status_codes(status, expected):
+    assert classify(FakeStatusError(status), [500, 502, 503, 504]) == expected
+
+
+def test_classify_timeout_is_retryable():
+    class APITimeoutError(Exception):
+        pass
+    assert classify(APITimeoutError(), []) == "retry"
+
+
+# --- routing ---------------------------------------------------------------
+
+
+def test_role_selects_correct_chain(tmp_path):
+    provider, backend, _, _ = build(tmp_path)
+    provider.complete("sys", "usr", role=Role.EXTRACTION)
+    assert backend.calls[0]["model"] == "small"
+
+
+def test_role_uses_per_model_output_cap(tmp_path):
+    """TPM is only 8K — per-role output caps are load-bearing, not cosmetic."""
+    provider, backend, _, _ = build(tmp_path)
+    provider.complete("sys", "usr", role=Role.EXTRACTION)
+    assert backend.calls[0]["max_output_tokens"] == 256
+
+
+def test_unconfigured_role_raises(tmp_path):
+    base = make_config(tmp_path)
+    cfg = make_config(tmp_path, roles={**{r: [m.model_dump() for m in ch] for r, ch in base.roles.items()},
+                                       "extraction": []})
+    from fcr.llm.cache import PromptCache
+    provider = LLMProvider(cfg, backends={"groq": FakeBackend()},
+                           ledger=QuotaLedger(tmp_path / "q.json", {}),
+                           now=lambda: T0,
+                           cache=PromptCache(tmp_path / "c", enabled=False))
+    with pytest.raises(ProviderError, match="no models configured"):
+        provider.complete("s", "u", role=Role.EXTRACTION)
+
+
+# --- retry and fallback ----------------------------------------------------
+
+
+def test_retries_on_500_then_succeeds(tmp_path):
+    backend = FakeBackend(script=[FakeStatusError(500), '{"ok": true}'])
+    provider, backend, _, slept = build(tmp_path, backend=backend)
+    resp = provider.complete("s", "u")
+    assert resp.attempts == 2
+    assert resp.model == "primary"
+    assert not resp.fell_back
+    assert len(slept) == 1          # backed off once
+
+
+def test_429_switches_model_without_retrying_same_one(tmp_path):
+    backend = FakeBackend(script=[FakeStatusError(429), '{"ok": true}'])
+    provider, backend, _, slept = build(tmp_path, backend=backend)
+    resp = provider.complete("s", "u")
+    assert resp.model == "secondary"
+    assert resp.fell_back
+    assert slept == []              # a 429 is not waited out, it switches
+
+
+def test_429_marks_model_spent_for_the_day(tmp_path):
+    backend = FakeBackend(script=[FakeStatusError(429, "Rate limit reached for model on tokens per day (TPD): Limit 200000"), '{"ok": 1}', '{"ok": 2}'])
+    provider, backend, ledger, _ = build(tmp_path, backend=backend)
+    provider.complete("s", "u")
+    provider.complete("s", "u")     # second call must skip 'primary' entirely
+    assert [c["model"] for c in backend.calls] == ["primary", "secondary", "secondary"]
+
+
+def test_401_is_fatal_and_does_not_fall_through(tmp_path):
+    backend = FakeBackend(script=[FakeStatusError(401)])
+    provider, backend, _, _ = build(tmp_path, backend=backend)
+    with pytest.raises(ProviderError, match="unrecoverable"):
+        provider.complete("s", "u")
+    assert len(backend.calls) == 1  # auth failure must not burn the chain
+
+
+def test_exhausts_attempts_then_falls_through(tmp_path):
+    backend = FakeBackend(
+        script=[FakeStatusError(500)] * 3 + ['{"ok": true}']
+    )
+    provider, backend, _, _ = build(tmp_path, backend=backend)
+    resp = provider.complete("s", "u")
+    assert resp.model == "secondary" and resp.fell_back
+
+
+def test_whole_chain_failing_raises_quota_exhausted(tmp_path):
+    backend = FakeBackend(script=[FakeStatusError(500)] * 20)
+    provider, backend, _, _ = build(tmp_path, backend=backend)
+    with pytest.raises(QuotaExhausted, match="every model in the chain"):
+        provider.complete("s", "u")
+
+
+# --- quota integration -----------------------------------------------------
+
+
+def test_skips_model_with_no_daily_tokens_left(tmp_path):
+    provider, backend, ledger, _ = build(tmp_path)
+    ledger.record("primary", 200_000, now=T0)     # primary is spent
+    resp = provider.complete("s", "u")
+    assert resp.model == "secondary" and resp.fell_back
+
+
+def test_records_actual_not_estimated_usage(tmp_path):
+    provider, backend, ledger, _ = build(tmp_path)
+    provider.complete("s", "u")
+    assert ledger.snapshot(now=T0)["primary"]["tpd"][0] == 150   # 100 + 50
+
+
+def test_waits_out_a_minute_window_block(tmp_path):
+    provider, backend, ledger, slept = build(tmp_path)
+    ledger.record("primary", 7900, now=T0)        # TPM nearly gone
+    provider.complete("s", "u")
+    assert slept, "should have waited out the TPM window"
+
+
+def test_does_not_wait_longer_than_max_quota_wait(tmp_path):
+    provider, backend, ledger, slept = build(
+        tmp_path, retry={"max_attempts": 3, "initial_backoff_s": 0.0,
+                         "backoff_multiplier": 1.0,
+                         "retry_on_status": [500], "max_quota_wait_s": 0.5}
+    )
+    ledger.record("primary", 7900, now=T0)
+    resp = provider.complete("s", "u")
+    assert resp.model == "secondary"              # switched instead of sleeping
+    assert slept == []
+
+
+# --- structured output -----------------------------------------------------
+
+
+def test_complete_json_parses(tmp_path):
+    backend = FakeBackend(script=['```json\n{"plan": ["a"]}\n```'])
+    provider, backend, _, _ = build(tmp_path, backend=backend)
+    parsed, resp = provider.complete_json("s", "u")
+    assert parsed == {"plan": ["a"]}
+    assert backend.calls[0]["json_mode"] is True
+
+
+def test_complete_json_repairs_locally_without_extra_api_call(tmp_path):
+    """Local repair must be free — a re-prompt costs quota we do not have."""
+    backend = FakeBackend(script=['{"plan": ["a"],}'])
+    provider, backend, _, _ = build(tmp_path, backend=backend)
+    parsed, _ = provider.complete_json("s", "u")
+    assert parsed == {"plan": ["a"]}
+    assert len(backend.calls) == 1
+
+
+def test_complete_json_reprompts_when_unrepairable(tmp_path):
+    backend = FakeBackend(script=["not json at all", '{"plan": []}'])
+    provider, backend, _, _ = build(tmp_path, backend=backend)
+    parsed, _ = provider.complete_json("s", "u")
+    assert parsed == {"plan": []}
+    assert len(backend.calls) == 2
+    assert "could not be parsed" in backend.calls[1]["user"]
+
+
+def test_complete_json_enforces_required_keys(tmp_path):
+    from fcr.llm.structured import StructuredOutputError
+    backend = FakeBackend(default='{"wrong": 1}')
+    provider, backend, _, _ = build(tmp_path, backend=backend)
+    with pytest.raises(StructuredOutputError, match="missing required keys"):
+        provider.complete_json("s", "u", required_keys=["plan"], repair_attempts=0)
+
+
+def test_empty_response_falls_through(tmp_path):
+    backend = FakeBackend(script=["   ", '{"ok": true}'])
+    provider, backend, _, _ = build(tmp_path, backend=backend)
+    resp = provider.complete("s", "u")
+    assert resp.model == "secondary"
+
+
+def test_quota_report_renders(tmp_path):
+    provider, _, _, _ = build(tmp_path)
+    provider.complete("s", "u")
+    report = provider.quota_report()
+    assert "primary" in report and "judge-model" in report
+
+
+# --- model capability flags ------------------------------------------------
+
+
+def test_system_prompt_folded_into_content_when_unsupported(tmp_path):
+    """Gemma has no system role. The prompt must survive, folded into the
+    user content — silently dropping it would degrade quality with no error."""
+    from fcr.llm.provider import ModelSpec
+    from fcr.llm.rate_limit import ModelLimits
+
+    captured = {}
+
+    class RecordingGemini:
+        name = "gemini"
+
+        def complete(self, spec, system, user, temperature, max_out, json_mode):
+            # Mirrors GeminiBackend's folding logic.
+            captured["contents"] = (
+                user if spec.supports_system_instruction
+                else f"{system}\n\n---\n\n{user}"
+            )
+            captured["sends_system_kwarg"] = spec.supports_system_instruction
+            return '{"ok": true}', 10, 5
+
+    spec = ModelSpec(
+        provider="gemini", model="gemma-4-31b-it",
+        limits=ModelLimits(rpm=30, rpd=14400, tpm=16000),
+        supports_system_instruction=False,
+    )
+    RecordingGemini().complete(spec, "SYSTEM RULES", "the question", 0.0, 512, False)
+    assert "SYSTEM RULES" in captured["contents"]
+    assert captured["sends_system_kwarg"] is False
+
+
+def test_thinking_budget_defaults_to_not_sent():
+    """None means 'omit the key'. Sending it to Gemma is a hard 400."""
+    from fcr.llm.provider import ModelSpec
+    from fcr.llm.rate_limit import ModelLimits
+
+    spec = ModelSpec(provider="gemini", model="gemma-4-31b-it",
+                     limits=ModelLimits(rpm=30))
+    assert spec.thinking_budget is None
+    assert spec.supports_system_instruction is True   # opt-out, not default
+
+
+# --- cache integration -----------------------------------------------------
+
+
+def test_second_identical_call_makes_no_api_request(tmp_path):
+    """The C3 acceptance check: re-running an unchanged prompt is free."""
+    provider, backend, _, _ = build(tmp_path, cache_enabled=True)
+    first = provider.complete("s", "u")
+    second = provider.complete("s", "u")
+    assert len(backend.calls) == 1
+    assert first.from_cache is False
+    assert second.from_cache is True
+    assert second.text == first.text
+    assert provider.cache.stats.hits == 1
+
+
+def test_cache_hit_costs_no_quota(tmp_path):
+    """A cached response is a recorded observation, not a new API call.
+    Charging quota for it would make the ledger over-report and could
+    falsely exhaust a model."""
+    provider, backend, ledger, _ = build(tmp_path, cache_enabled=True)
+    provider.complete("s", "u")
+    spent_after_live = ledger.snapshot(now=T0)["primary"]["tpd"][0]
+    provider.complete("s", "u")
+    assert ledger.snapshot(now=T0)["primary"]["tpd"][0] == spent_after_live
+
+
+def test_changed_prompt_misses(tmp_path):
+    provider, backend, _, _ = build(tmp_path, cache_enabled=True)
+    provider.complete("s", "u")
+    provider.complete("s", "different question")
+    assert len(backend.calls) == 2
+
+
+def test_different_role_misses_because_model_differs(tmp_path):
+    provider, backend, _, _ = build(tmp_path, cache_enabled=True)
+    provider.complete("s", "u", role=Role.GENERATION)
+    provider.complete("s", "u", role=Role.EXTRACTION)
+    assert len(backend.calls) == 2
+
+
+def test_rerun_hits_cache_even_when_original_fell_back(tmp_path):
+    """The reason lookup scans the whole chain. If run 1 fell back to the
+    secondary model, run 2 must NOT spend quota probing the primary."""
+    backend = FakeBackend(script=[FakeStatusError(429), '{"ok": true}'])
+    provider, backend, ledger, _ = build(
+        tmp_path, backend=backend, cache_enabled=True
+    )
+    first = provider.complete("s", "u")
+    assert first.model == "secondary" and first.fell_back
+
+    calls_before = len(backend.calls)
+    second = provider.complete("s", "u")
+    assert second.from_cache is True
+    assert second.model == "secondary"
+    assert len(backend.calls) == calls_before      # no live call at all
+
+
+def test_use_cache_false_bypasses_both_read_and_write(tmp_path):
+    """C37 re-runs the judge blind; a cached verdict would defeat that."""
+    provider, backend, _, _ = build(tmp_path, cache_enabled=True)
+    provider.complete("s", "u")
+    provider.complete("s", "u", use_cache=False)
+    assert len(backend.calls) == 2
+    assert provider.cache.stats.hits == 0
+
+
+def test_empty_response_is_never_cached(tmp_path):
+    """Caching a failure would poison every future run of that prompt."""
+    backend = FakeBackend(script=["   ", '{"ok": true}', '{"ok": true}'])
+    provider, backend, _, _ = build(
+        tmp_path, backend=backend, cache_enabled=True
+    )
+    provider.complete("s", "u")                    # primary empty -> secondary
+    assert provider.cache.count() == 1             # only the good one stored
+
+
+def test_cache_disabled_by_config_makes_two_calls(tmp_path):
+    provider, backend, _, _ = build(tmp_path, cache_enabled=False)
+    provider.complete("s", "u")
+    provider.complete("s", "u")
+    assert len(backend.calls) == 2
+
+
+# --- tracing integration ---------------------------------------------------
+
+
+def test_provider_traces_live_and_cached_calls(tmp_path):
+    """A run's trace must account for its whole LLM spend, including the
+    calls that cost nothing — otherwise cache effectiveness is invisible."""
+    from fcr.llm.tracer import EventType, TraceReader, Tracer
+
+    tracer = Tracer(tmp_path / "traces", trace_id="p1")
+    provider, backend, _, _ = build(tmp_path, cache_enabled=True)
+    provider.tracer = tracer
+
+    provider.complete("s", "u")      # live
+    provider.complete("s", "u")      # cached
+    tracer.close()
+
+    totals = TraceReader.load(tracer.path).llm_totals()
+    assert totals["calls"] == 2
+    assert totals["live_calls"] == 1
+    assert totals["cached_calls"] == 1
+
+
+def test_provider_works_without_a_tracer(tmp_path):
+    """Tracing is optional — unit tests and scripts run without one."""
+    provider, backend, _, _ = build(tmp_path)
+    assert provider.tracer is None
+    assert provider.complete("s", "u").text
+
+
+# --- provider-side JSON enforcement (found live at C20) --------------------
+
+
+class JsonValidateError(Exception):
+    """Mirrors groq.BadRequestError for json_validate_failed."""
+
+    status_code = 400
+
+    def __init__(self):
+        super().__init__(
+            "Error code: 400 - {'error': {'message': \"Failed to validate "
+            "JSON. Please adjust your prompt. See 'failed_generation' for "
+            "more details.\", 'code': 'json_validate_failed'}}"
+        )
+
+
+def test_json_validate_failure_is_not_fatal():
+    """Groq validates response_format server side and returns 400 rather
+    than the text. Treating that as fatal killed a real run; the model
+    merely failed to produce parseable JSON on one attempt."""
+    assert classify(JsonValidateError(), [500]) == "retry_plain"
+
+
+def test_json_validate_failure_retries_without_enforcement(tmp_path):
+    """The provider is stricter than our parser: slightly malformed output
+    is discarded before the C2 repair layer sees it. Retrying without
+    enforcement recovers a response we can fix."""
+    backend = FakeBackend(script=[JsonValidateError(), '{"ok": true}'])
+    provider, backend, _, _ = build(tmp_path, backend=backend)
+    resp = provider.complete("s", "u", json_mode=True)
+
+    assert resp.model == "primary"          # same model, not a fallback
+    assert backend.calls[0]["json_mode"] is True
+    assert backend.calls[1]["json_mode"] is False
+
+
+def test_json_failure_without_enforcement_switches_model(tmp_path):
+    backend = FakeBackend(script=[JsonValidateError(), JsonValidateError(),
+                                  '{"ok": true}'])
+    provider, backend, _, _ = build(tmp_path, backend=backend)
+    resp = provider.complete("s", "u", json_mode=True)
+    assert resp.model == "secondary"
+
+
+def test_context_length_400_moves_on_without_exhausting(tmp_path):
+    """A different model may have a larger context window — but this one's
+    quota is untouched, so it must not be marked spent."""
+    class TooLong(Exception):
+        status_code = 400
+
+        def __init__(self):
+            super().__init__("400 context_length_exceeded")
+
+    assert classify(TooLong(), [500]) == "retry_plain"
+
+
+def test_genuine_bad_request_is_still_fatal():
+    """A malformed request is a code bug; retrying it wastes quota."""
+    class BadRequest(Exception):
+        status_code = 400
+
+        def __init__(self):
+            super().__init__("400 - unknown parameter 'temperatrue'")
+
+    assert classify(BadRequest(), [500]) == "fatal"
+
+
+def test_complete_json_survives_a_validation_failure(tmp_path):
+    backend = FakeBackend(script=[
+        JsonValidateError(),
+        '```json\n{"sub_questions": ["a"]}\n```',   # repairable, not strict
+    ])
+    provider, backend, _, _ = build(tmp_path, backend=backend)
+    parsed, _ = provider.complete_json("s", "u")
+    assert parsed == {"sub_questions": ["a"]}
+
+
+# --- exhaustion must mean exhaustion (regression, C20) ---------------------
+
+
+def test_json_failure_does_not_mark_the_model_spent(tmp_path):
+    """The bug this guards against burned three models' entire daily budgets
+    in five questions. A JSON validation failure says nothing about quota,
+    and folding it into the 429 path made the ledger believe otherwise."""
+    backend = FakeBackend(script=[
+        JsonValidateError(), JsonValidateError(),   # primary gives up
+        '{"ok": true}',                             # secondary answers
+    ])
+    provider, backend, ledger, _ = build(tmp_path, backend=backend)
+    provider.complete("s", "u", json_mode=True)
+
+    # The primary must still be usable: it failed to format, not to have quota.
+    assert ledger.check("primary", 100, now=T0).allowed
+
+
+def test_a_real_429_still_exhausts_the_model(tmp_path):
+    backend = FakeBackend(script=[FakeStatusError(429, "Rate limit reached for model on tokens per day (TPD): Limit 200000"), '{"ok": true}'])
+    provider, backend, ledger, _ = build(tmp_path, backend=backend)
+    provider.complete("s", "u")
+    assert not ledger.check("primary", 100, now=T0).allowed
+
+
+def test_context_length_400_does_not_exhaust_either(tmp_path):
+    class TooLong(Exception):
+        status_code = 400
+
+        def __init__(self):
+            super().__init__("400 context_length_exceeded")
+
+    backend = FakeBackend(script=[TooLong(), '{"ok": true}'])
+    provider, backend, ledger, _ = build(tmp_path, backend=backend)
+    resp = provider.complete("s", "u")
+    assert resp.model == "secondary"
+    assert ledger.check("primary", 100, now=T0).allowed
+
+
+def test_a_json_failure_on_one_question_does_not_starve_the_next(tmp_path):
+    """The live symptom: five questions in, every model reported out of
+    quota though almost nothing had been spent."""
+    backend = FakeBackend(script=[
+        JsonValidateError(), JsonValidateError(), '{"ok": 1}',   # q1
+        '{"ok": 2}',                                             # q2
+    ])
+    provider, backend, ledger, _ = build(tmp_path, backend=backend)
+    provider.complete("s", "u1", json_mode=True)
+    second = provider.complete("s", "u2", json_mode=True)
+    assert second.model == "primary"        # back to the preferred model
+
+
+# --- C27.3: which window a 429 is about ------------------------------------
+
+MINUTE = ("Rate limit reached for model `openai/gpt-oss-120b` on tokens per "
+          "minute (TPM): Limit 8000, Used 6100, Requested 2400. "
+          "Please try again in 3.75s.")
+
+
+@pytest.mark.parametrize("message,expected", [
+    (MINUTE, "wait"),
+    ("Rate limit reached on requests per minute (RPM): Limit 30", "wait"),
+    ("Rate limit reached on tokens per day (TPD): Limit 200000", "switch"),
+    ("429 RESOURCE_EXHAUSTED GenerateRequestsPerDayPerProjectPerModel", "switch"),
+    ("429 RESOURCE_EXHAUSTED GenerateContentInputTokensPerModelPerMinute", "wait"),
+    ("429 Too Many Requests", "switch_keep"),
+])
+def test_429s_are_classified_by_window(message, expected):
+    assert classify(FakeStatusError(429, message), [500]) == expected
+
+
+def test_a_minute_429_waits_and_retries_the_same_model(tmp_path):
+    """The C27 smoke: synthesis hit the minute window and fell through to
+    weaker models. The judgment role should wait instead."""
+    slept = []
+    backend = FakeBackend(script=[FakeStatusError(429, MINUTE), '{"ok": true}'])
+    provider, backend, ledger, _ = build(tmp_path, backend=backend)
+    provider._sleep = slept.append
+    resp = provider.complete("s", "u")
+    assert resp.model == "primary" and not resp.fell_back
+    assert [c["model"] for c in backend.calls] == ["primary", "primary"]
+    assert slept and 3.75 <= slept[0] <= 5.0
+
+
+def test_a_minute_429_never_burns_the_day(tmp_path):
+    """The defect, directly: one minute-window 429 used to record the
+    model's entire remaining daily allowance."""
+    backend = FakeBackend(script=[FakeStatusError(429, MINUTE), '{"ok": true}'])
+    provider, backend, ledger, _ = build(tmp_path, backend=backend)
+    provider._sleep = lambda s: None
+    provider.complete("s", "u")
+    assert ledger.remaining_tokens_today("primary", now=T0) is None or \
+        ledger.remaining_tokens_today("primary", now=T0) > 0
+    assert ledger.check("primary", 100, now=T0).allowed
+
+
+def test_a_minute_429_with_too_long_a_wait_switches_without_burning(tmp_path):
+    long_wait = FakeStatusError(429, "tokens per minute (TPM) ... try again in 5m0s")
+    backend = FakeBackend(script=[long_wait, '{"ok": true}'])
+    provider, backend, ledger, _ = build(tmp_path, backend=backend)
+    provider._sleep = lambda s: pytest.fail("should not wait five minutes")
+    resp = provider.complete("s", "u")
+    assert resp.model == "secondary"
+    assert ledger.check("primary", 100, now=T0).allowed
+
+
+def test_an_unclassified_429_switches_without_burning(tmp_path):
+    backend = FakeBackend(script=[FakeStatusError(429, "Too Many Requests"), '{"ok": 1}'])
+    provider, backend, ledger, _ = build(tmp_path, backend=backend)
+    assert provider.complete("s", "u").model == "secondary"
+    assert ledger.check("primary", 100, now=T0).allowed
+
+
+def test_retry_after_reads_header_then_message():
+    from fcr.llm.provider import retry_after_seconds
+
+    class WithHeader(Exception):
+        class response:
+            headers = {"retry-after": "12"}
+
+    assert retry_after_seconds(WithHeader("x")) == 12.0
+    assert retry_after_seconds(Exception("Please try again in 1m2.5s")) == 62.5
+    assert retry_after_seconds(Exception("no hint")) == 60.0
+
+
+def test_prompt_budget_is_the_tightest_model_in_the_chain(tmp_path):
+    provider, _, _, _ = build(tmp_path)
+    budget = provider.prompt_token_budget("generation")
+    specs = provider.chains.get("generation") or []
+    expected = [s.limits.tpm - s.max_output_tokens for s in specs if s.limits.tpm]
+    assert budget == (min(expected) if expected else None)
+
+
+def test_the_real_generation_chain_has_room_for_a_prompt(tmp_path):
+    """8K TPM minus a 2,048-token output reservation leaves ~5.9K."""
+    from fcr.llm.cache import PromptCache
+    from fcr.llm.provider import LLMProvider, Role
+
+    provider = LLMProvider(load_config().llm, root=tmp_path,
+                           cache=PromptCache(tmp_path / "c", enabled=False))
+    budget = provider.prompt_token_budget(Role.GENERATION)
+    assert budget is not None and 4000 < budget < 8000
+
+
+
+# --- C32.1: a pinned model waits out minute windows ------------------------
+
+
+def test_a_pinned_model_waits_past_the_attempt_limit(tmp_path):
+    """C32 live: 'minute-window 429 — switching' on a pinned chain had
+    nothing to switch to, and the critic's call failed. With one model,
+    minute waits do not consume attempts."""
+    minute = lambda: FakeStatusError(429, "tokens per minute (TPM) ... try again in 2s")
+    backend = FakeBackend(script=[minute(), minute(), minute(), minute(), '{"ok": true}'])
+    provider, backend, _, slept = build(tmp_path, backend=backend, pin={"generation": "primary"})
+    provider._sleep = slept.append
+    resp = provider.complete("s", "u", role=Role.GENERATION)
+    assert resp.model == "primary"
+    assert len(slept) == 4
+
+
+def test_pinned_minute_waits_are_bounded_by_the_total_cap(tmp_path):
+    minute = lambda: FakeStatusError(429, "tokens per minute (TPM) ... try again in 50s")
+    backend = FakeBackend(script=[minute() for _ in range(30)])
+    provider, backend, _, slept = build(tmp_path, backend=backend, pin={"generation": "primary"})
+    provider._sleep = slept.append
+    provider.max_pinned_wait_s = 120.0
+    with pytest.raises(Exception):
+        provider.complete("s", "u", role=Role.GENERATION)
+    # Pinned waits stop at the cap; the ordinary path then allows its usual
+    # (max_attempts - 1) waits before failing. Bounded either way.
+    bound = provider.max_pinned_wait_s + (provider.max_attempts - 1) * provider.max_quota_wait_s
+    assert sum(slept) <= bound
+
+
+def test_an_unpinned_chain_still_switches_after_its_attempts(tmp_path):
+    minute = lambda: FakeStatusError(429, "tokens per minute (TPM) ... try again in 2s")
+    backend = FakeBackend(script=[minute(), minute(), minute(), '{"ok": true}'])
+    provider, backend, _, slept = build(tmp_path, backend=backend)
+    provider._sleep = slept.append
+    assert provider.complete("s", "u").model == "secondary"
+
+
+# --- C2 additions ----------------------------------------------------------
+
+
+def test_truncated_json_reprompts_when_truncation_repair_is_off(tmp_path):
+    truncated = '{"claims": [{"group": "dpd"}, {"gro'
+    backend = FakeBackend(script=[truncated, '{"claims": [{"group": "dpd"}, {"group": "debt"}]}'])
+    provider, backend, _, _ = build(tmp_path, backend=backend)
+    parsed, _ = provider.complete_json("s", "u", required_keys=["claims"], repair_truncation=False)
+    assert len(parsed["claims"]) == 2
+    assert len(backend.calls) == 2, "the truncated reply must cost a re-prompt, not be silently shortened"
+
+
+def test_real_config_builds_a_provider_without_network(tmp_path):
+    """Backends are created lazily, so constructing the provider from the
+    repo config needs no keys; paths land under the given root."""
+    provider = LLMProvider(load_config().llm, root=tmp_path)
+    assert [s.model for s in provider.chains[Role.GRADER]] == ["gemini-3.1-flash-lite"]
+    assert provider.cache.dir == tmp_path / ".cache" / "llm"
+    assert provider.ledger.path == tmp_path / ".cache" / "quota_ledger.json"

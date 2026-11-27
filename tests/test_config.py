@@ -78,3 +78,46 @@ def test_env_var_overrides_search(tmp_path, monkeypatch, raw):
 def test_missing_explicit_path_raises(tmp_path):
     with pytest.raises(FileNotFoundError):
         load_config(tmp_path / "nope.yaml")
+
+
+# --- llm section (C2) ------------------------------------------------------
+
+
+def _model(name, provider="groq"):
+    return {"provider": provider, "model": name, "limits": {"rpm": 30, "tpd": 1000}}
+
+
+@pytest.mark.parametrize(
+    ("dotted", "value", "message"),
+    [
+        ("llm.roles", {"planner": [_model("m")]}, "unknown LLM roles"),
+        ("llm.pin", {"generation": "not-in-chain"}, "not in the generation chain"),
+        # The grader must never grade letters written by its own model.
+        ("llm.roles", {"generation": [_model("same")], "grader": [_model("same", "gemini")]}, "shares models"),
+        (
+            "llm.roles",
+            {"generation": [_model("m")], "extraction": [{**_model("m"), "limits": {"rpm": 1}}]},
+            "two different limit sets",
+        ),
+    ],
+)
+def test_invalid_llm_setups_are_rejected(raw, dotted, value, message):
+    with pytest.raises(ValidationError, match=message):
+        Config.model_validate(_with(raw, dotted, value))
+
+
+def test_repo_llm_config_has_every_role_and_an_independent_grader(repo_root):
+    cfg = load_config(repo_root / "configs" / "config.yaml")
+    assert set(cfg.llm.roles) == {"generation", "extraction", "grader"}
+    generators = {m.model for m in cfg.llm.roles["generation"]}
+    assert generators.isdisjoint(m.model for m in cfg.llm.roles["grader"])
+    assert all(v is None for v in cfg.llm.pin.values()), "pins are set in C19, not before"
+
+
+def test_relative_paths_resolve_against_the_repo_root(repo_root, tmp_path):
+    from fcr.config import repo_root as find_root
+    from fcr.config import resolve_path
+
+    assert find_root(repo_root / "configs" / "config.yaml") == repo_root
+    assert resolve_path(".cache/llm", tmp_path) == tmp_path / ".cache" / "llm"
+    assert resolve_path(tmp_path / "abs", repo_root) == tmp_path / "abs"

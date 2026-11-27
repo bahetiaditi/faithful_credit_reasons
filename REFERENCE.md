@@ -1,6 +1,6 @@
 # REFERENCE — Faithful Credit Reasons
 
-Exported from the live reference doc; regenerate this file whenever the doc changes. Last export: 2026-11-27 (C1.1).
+Exported from the live reference doc; regenerate this file whenever the doc changes. Last export: 2026-11-27 (C2).
 
 ## 0. How to use this document
 
@@ -298,7 +298,7 @@ A hand-reviewed YAML file maps raw features to 15–25 groups. Each group carrie
 | E2 | The deterministic true adverse set only | Letter plus JSON claims; verifier runs; up to 2 regenerations with error feedback, then a template fallback | Whether restricting the LLM to verbalising makes letters faithful |
 | E3 | E2 plus verified recourse candidates (Section 6.4) | As E2, with recourse sentences | Whether actionable advice can be made faithful too |
 
-All conditions use the same model, temperature 0, and the same style exemplars. Generations go through Project 2's provider and prompt-hash cache, and model versions are recorded per run.
+All conditions use the same model, temperature 0, and the same style exemplars. Claim JSON is always parsed with truncation repair off: a claim list cut off at the token limit must trigger a re-prompt, never parse as a shorter list the verifier would then under-check. Generations go through Project 2's provider and prompt-hash cache, and model versions are recorded per run.
 
 ### 6.4 Recourse search
 
@@ -628,5 +628,6 @@ Draft now, fill numbers only when measured. **Every bracketed placeholder is cur
 
 | Date | Commit | What happened |
 | --- | --- | --- |
-| 2026-11-27 | C1.1 | Kaggle mounts the competition at `/kaggle/input/competitions/<slug>`, not `/kaggle/input/<slug>`. Config fixed; `fcr.data.paths.locate_competition_dir` falls back to known layouts and the smoke output warns on a mismatch. With the pinned lock, Kaggle (Python 3.13) runs identical versions to the Mac and passes all tests. Kaggle packages we never import report version conflicts; accepted as noise. |
+| 2026-11-27 | C2 | Ported Project 2's provider, quota ledger, prompt cache, JSON repair and tracer into `fcr.llm` (google-genai 2.22 to 3.6.1 checked: every call Project 2 makes still exists). Roles are generation, extraction and grader; config validation rejects a grader that shares a model with generation. New: JSON truncation repair can be switched off, and claim lists use it off, because a truncated claim list would otherwise parse as a shorter valid one and the verifier would check fewer claims than the letter makes. Tracer generalised: Project 2's routing and decision-surface events replaced by a generic `decision` event for the verify-and-regenerate loop. 216 tests pass; smoke passes in dry-run mode; live run pending. Both projects share API quotas but keep separate ledgers. |
+| 2026-11-27 | C1.1 | Kaggle mounts the competition at `/kaggle/input/competitions/<slug>`. Config fixed; `fcr.data.paths.locate_competition_dir` falls back to known layouts. With the pinned lock, Kaggle (Python 3.13) runs identical versions to the Mac and passes all 71 tests. Data confirmed: 32 train parquet files, about 1.27 GB compressed. |
 | 2026-11-27 | C1 | Built in clean Python 3.12 and 3.11 venvs. Mac (3.12.5): 65 tests and smoke pass. Kaggle (3.13.18): smoke passes at 12452a3. Added `fcr.data.naming` early so fixtures and the C3 loader share one definition. Kaggle install changed to clone + `pip install -e`. Finding: a loose install left Kaggle on different major versions (polars 1.35 vs 2.2, pandas 2.3 vs 3.1) and broke some preinstalled cvxpy solvers, so Kaggle now installs the pinned lock. |

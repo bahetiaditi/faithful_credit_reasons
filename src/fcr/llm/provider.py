@@ -1,0 +1,854 @@
+"""The LLM provider layer.
+
+Ported from Project 2 (calibrated-deep-research, src/llm/provider.py) in C2.
+What changed in the port: the roles are this project's (generation,
+extraction, grader), configuration is the typed `LLMConfig` instead of a
+dotted-path dict, and paths resolve against this repo. The retry, quota,
+fallback and caching behaviour is unchanged; every comment below that cites a
+Project 2 commit (C27.3, C32.1, ...) records a failure that was observed live
+there and is the reason the code looks the way it does.
+
+
+Design, and why it is not "primary + fallback"
+----------------------------------------------
+The original plan was Gemini primary, Groq fallback on 429. Measured free-tier
+limits killed that: Gemini 2.5 Flash allows 20 requests/day on this account,
+which is half of one benchmark question. So the layer is built around three
+ideas instead:
+
+1. ROLES, not a single model. Calls differ in how much judgment they need.
+   Claim segmentation and query reformulation are mechanical; planning,
+   criticism, and the terminal decision are not. Routing mechanical work to a
+   smaller model preserves the scarce token budget on the big one. This was
+   always an interview talking point ("swap models per role"); the free tier
+   just made it mandatory.
+
+2. CHAINS, not a pair. Each role has an ordered list of models. Exhausting one
+   model's daily tokens falls through to the next rather than failing the run.
+
+3. PREDICT, don't discover. Quota is checked locally before every call
+   (see rate_limit.py). Learning your limits by collecting 429s spends the
+   quota you are trying to conserve.
+
+Gemini is reserved for the evaluation judge. That is not a consolation prize:
+scoring a system's output with the same model that produced it invites
+self-preference bias, so an independent judge is better methodology than the
+original design had. 20 RPD is ample for a judge run once at the end.
+
+Reasoning tokens
+----------------
+The gpt-oss models are reasoning models and Gemini 2.5 Flash thinks by
+default. Those hidden tokens are billed against the same TPD ceiling as
+visible output, so both are controlled explicitly per role rather than left
+at provider defaults.
+"""
+from __future__ import annotations
+
+import re
+
+import logging
+import time
+from datetime import datetime
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Callable, Protocol
+
+from pathlib import Path
+
+from fcr.config import LLMConfig, has_env, load_config, require_env, resolve_path
+from fcr.llm.cache import CachedResponse, PromptCache
+from fcr.llm.rate_limit import (
+    ModelLimits,
+    QuotaExhausted,
+    QuotaLedger,
+)
+from fcr.llm.structured import extract_json
+
+log = logging.getLogger(__name__)
+
+# Upper bound on how many times we will sleep waiting for a minute-window to
+# clear before giving up on a model. Prevents an unbounded hang.
+_MAX_QUOTA_WAITS = 4
+
+
+class Role(str, Enum):
+    """What kind of thinking a call needs. Maps to a model chain in config."""
+
+    GENERATION = "generation"  # writes the letters under test (E0-E3)
+    EXTRACTION = "extraction"  # free-text letter -> claim JSON; mechanical
+    GRADER = "grader"          # LLM-grader baseline; independent of generation
+
+
+@dataclass
+class LLMResponse:
+    text: str
+    model: str
+    provider: str
+    role: Role
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+    latency_s: float
+    attempts: int
+    fell_back: bool
+    from_cache: bool = False
+
+    def json(self) -> Any:
+        return extract_json(self.text)
+
+
+@dataclass
+class ModelSpec:
+    provider: str
+    model: str
+    limits: ModelLimits
+    max_output_tokens: int = 2048
+    reasoning_effort: str | None = None   # groq gpt-oss: none|low|medium|high
+    thinking_budget: int | None = None    # gemini: 0 disables thinking.
+    #   Omit entirely for models that reject it — Gemma returns 400
+    #   "Thinking budget is not supported". None means "do not send".
+    supports_json_mode: bool = True
+    #   Gemma on the Gemini API does not accept a separate system role.
+    #   When False the system prompt is prepended to the user content.
+    supports_system_instruction: bool = True
+
+    @classmethod
+    def from_config(cls, raw: Any) -> "ModelSpec":
+        if hasattr(raw, "model_dump"):   # a typed LLMModelConfig
+            raw = raw.model_dump()
+        return cls(
+            provider=raw["provider"],
+            model=raw["model"],
+            limits=ModelLimits.from_config(raw.get("limits", {})),
+            max_output_tokens=raw.get("max_output_tokens", 2048),
+            reasoning_effort=raw.get("reasoning_effort"),
+            thinking_budget=raw.get("thinking_budget"),
+            supports_json_mode=raw.get("supports_json_mode", True),
+            supports_system_instruction=raw.get("supports_system_instruction", True),
+        )
+
+
+class ProviderError(RuntimeError):
+    pass
+
+
+# ---------------------------------------------------------------------------
+# Backends
+# ---------------------------------------------------------------------------
+
+
+class Backend(Protocol):
+    name: str
+
+    def complete(
+        self,
+        spec: ModelSpec,
+        system: str,
+        user: str,
+        temperature: float,
+        max_output_tokens: int,
+        json_mode: bool,
+    ) -> tuple[str, int, int]:
+        """Return (text, prompt_tokens, completion_tokens)."""
+        ...
+
+
+class GroqBackend:
+    name = "groq"
+
+    def __init__(self, api_key: str | None = None) -> None:
+        from groq import Groq
+
+        # max_retries=0: retry/backoff is our concern, not the SDK's, because
+        # a silent SDK retry would spend quota the ledger never sees.
+        self._client = Groq(api_key=api_key or require_env("GROQ_API_KEY"), max_retries=0)
+
+    def complete(self, spec, system, user, temperature, max_output_tokens, json_mode):
+        kwargs: dict[str, Any] = {
+            "model": spec.model,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            "temperature": temperature,
+            "max_completion_tokens": max_output_tokens,
+        }
+        if spec.reasoning_effort:
+            kwargs["reasoning_effort"] = spec.reasoning_effort
+            # Keep chain-of-thought out of the content field so downstream
+            # JSON parsing sees only the answer.
+            kwargs["reasoning_format"] = "hidden"
+        if json_mode and spec.supports_json_mode:
+            kwargs["response_format"] = {"type": "json_object"}
+
+        resp = self._client.chat.completions.create(**kwargs)
+        text = resp.choices[0].message.content or ""
+        usage = resp.usage
+        return text, int(usage.prompt_tokens), int(usage.completion_tokens)
+
+
+class GeminiBackend:
+    name = "gemini"
+
+    def __init__(self, api_key: str | None = None) -> None:
+        from google import genai
+
+        self._genai = genai
+        self._client = genai.Client(api_key=api_key or require_env("GOOGLE_API_KEY"))
+
+    def complete(self, spec, system, user, temperature, max_output_tokens, json_mode):
+        from google.genai import types
+
+        cfg: dict[str, Any] = {
+            "temperature": temperature,
+            "max_output_tokens": max_output_tokens,
+            # We never pass tools; leaving AFC on emits a warning on every
+            # call and would silently make extra remote calls that the quota
+            # ledger cannot see.
+            "automatic_function_calling": types.AutomaticFunctionCallingConfig(
+                disable=True
+            ),
+        }
+
+        contents = user
+        if spec.supports_system_instruction:
+            cfg["system_instruction"] = system
+        else:
+            # Gemma rejects a separate system role — fold it into the prompt.
+            contents = f"{system}\n\n---\n\n{user}"
+
+        if json_mode and spec.supports_json_mode:
+            cfg["response_mime_type"] = "application/json"
+
+        # Sent only when explicitly configured. Gemma returns 400 on this key
+        # ("Thinking budget is not supported"), and it cannot be disabled
+        # there anyway — Gemma always thinks, which is why its calls carry a
+        # large hidden-token overhead.
+        if spec.thinking_budget is not None:
+            cfg["thinking_config"] = types.ThinkingConfig(
+                thinking_budget=spec.thinking_budget
+            )
+
+        resp = self._client.models.generate_content(
+            model=spec.model,
+            contents=contents,
+            config=types.GenerateContentConfig(**cfg),
+        )
+        usage = resp.usage_metadata
+        prompt_tokens = int(getattr(usage, "prompt_token_count", 0) or 0)
+        completion = int(getattr(usage, "candidates_token_count", 0) or 0)
+        # Thinking tokens bill against the same ceiling — count them or the
+        # ledger under-reports and we hit a surprise 429.
+        completion += int(getattr(usage, "thoughts_token_count", 0) or 0)
+        return resp.text or "", prompt_tokens, completion
+
+
+# ---------------------------------------------------------------------------
+# Retry classification
+# ---------------------------------------------------------------------------
+
+
+def _status_code(exc: Exception) -> int | None:
+    for attr in ("status_code", "code", "http_status"):
+        value = getattr(exc, attr, None)
+        if isinstance(value, int):
+            return value
+    response = getattr(exc, "response", None)
+    if response is not None and isinstance(getattr(response, "status_code", None), int):
+        return response.status_code
+    return None
+
+
+# A 400 whose body names one of these is about the GENERATION, not the
+# request, and is therefore worth another attempt. Defaulting every 400 to
+# fatal was wrong: Groq's `json_validate_failed` is a transient failure of
+# the model to produce parseable JSON, and it killed a real run outright.
+_RETRYABLE_400_MARKERS = (
+    "json_validate_failed",
+    "failed to validate json",
+    "context_length",
+    "too large",
+    "overloaded",
+)
+
+
+# Groq: "Rate limit reached ... on tokens per minute (TPM)". Gemini:
+# "RESOURCE_EXHAUSTED ... GenerateRequestsPerDayPerProjectPerModel".
+_MINUTE_MARKERS = ("per minute", "(tpm)", "(rpm)", "perminute")
+_DAY_MARKERS = ("per day", "(tpd)", "(rpd)", "perday")
+
+_RETRY_IN = re.compile(
+    r"try again in\s+(?:(\d+(?:\.\d+)?)m)?\s*(?:(\d+(?:\.\d+)?)s)?",
+    re.IGNORECASE,
+)
+
+
+def retry_after_seconds(exc: Exception, default: float = 60.0) -> float:
+    """How long the provider asked us to wait, from header or message.
+
+    Groq states it in the message ("Please try again in 7.425s", or
+    "in 1m2.5s") and in a retry-after header. Falls back to a full minute,
+    the longest a minute window can need.
+    """
+    response = getattr(exc, "response", None)
+    headers = getattr(response, "headers", None) or {}
+    try:
+        value = headers.get("retry-after") if hasattr(headers, "get") else None
+        if value is not None:
+            return max(0.0, float(value))
+    except (TypeError, ValueError):
+        pass
+    match = _RETRY_IN.search(str(exc))
+    if match and (match.group(1) or match.group(2)):
+        minutes = float(match.group(1) or 0.0)
+        seconds = float(match.group(2) or 0.0)
+        return minutes * 60.0 + seconds
+    return default
+
+
+def _mentions(exc: Exception, markers: tuple[str, ...]) -> bool:
+    text = str(exc).lower()
+    return any(marker in text for marker in markers)
+
+
+def classify(exc: Exception, retry_statuses: list[int]) -> str:
+    """-> 'retry', 'retry_plain', 'switch', or 'fatal'.
+
+    'retry_plain' means: try again on the same model but WITHOUT
+    provider-side JSON enforcement. Groq validates
+    `response_format: json_object` server side and returns 400 instead of
+    the text, so slightly malformed output is discarded before our repair
+    layer (C2) ever sees it. The provider is stricter than our parser, and
+    we lose a response we could have fixed.
+    """
+    status = _status_code(exc)
+    if status == 400 and _mentions(exc, ("json_validate_failed",
+                                         "failed to validate json")):
+        return "retry_plain"
+    if status == 400 and _mentions(exc, _RETRYABLE_400_MARKERS):
+        # Another model may have a larger context window, but this model's
+        # quota is untouched — hence retry_plain's "move on without
+        # exhausting" path rather than switch's.
+        return "retry_plain"
+    if status == 429:
+        # Which window ran out decides everything (C27.3). Until then every
+        # 429 was "switch", and the switch path burned the model's whole
+        # day: one minute-window rejection of a large prompt marked
+        # gpt-oss-120b as 200000/200000 for the rest of the UTC day. The
+        # C27 smoke produced three such 429s; the next run found both
+        # stronger judgment models "out of quota" with most of their real
+        # daily allowance unspent.
+        if _mentions(exc, _DAY_MARKERS):
+            return "switch"          # the provider says today is gone
+        if _mentions(exc, _MINUTE_MARKERS):
+            return "wait"            # wait out the window, same model
+        # Unrecognised 429: move on, but do NOT burn the day. Wrongly
+        # exhausting a model silently removes it for up to 24 hours; wrongly
+        # keeping it costs at most another 429 on the next call.
+        return "switch_keep"
+    if status in (401, 403):
+        return "fatal"
+    if status in retry_statuses:
+        return "retry"
+    name = type(exc).__name__
+    if "Timeout" in name or "Connection" in name:
+        return "retry"
+    if status is not None and 400 <= status < 500:
+        return "fatal"
+    return "retry"
+
+
+CHAIN_EXHAUSTED = "llm_chain_exhausted"
+# Day-window markers (C32.1's list, shared with the eval runner): Groq's
+# "(TPD)"/"(RPD)", Gemini's "...PerDay...", the local ledger's "used today".
+DAY_QUOTA_MARKERS = ("per day", "(tpd)", "(rpd)", "perday", "used today")
+
+
+def _mentions_day_quota(text: str) -> bool:
+    low = (text or "").lower()
+    return any(m in low for m in DAY_QUOTA_MARKERS)
+
+
+def estimate_tokens(system: str, user: str, max_output_tokens: int) -> int:
+    """Conservative pre-call estimate: ~4 chars/token, plus full output budget.
+
+    Over-estimating costs a little unused headroom. Under-estimating costs a
+    429 and the tokens already spent, so we round up deliberately.
+    """
+    prompt_chars = len(system) + len(user)
+    return int(prompt_chars / 3.5) + max_output_tokens
+
+
+# ---------------------------------------------------------------------------
+# Provider
+# ---------------------------------------------------------------------------
+
+
+class LLMProvider:
+    def __init__(
+        self,
+        config: LLMConfig | None = None,
+        *,
+        root: Path | None = None,
+        backends: dict[str, Backend] | None = None,
+        ledger: QuotaLedger | None = None,
+        sleep: Callable[[float], None] = time.sleep,
+        now: Callable[[], float] = time.time,
+        cache: PromptCache | None = None,
+        tracer: Any = None,
+    ) -> None:
+        self.cfg = config if config is not None else load_config().llm
+        self._sleep = sleep
+        self._now = now
+        # Optional: when set, every call (live or cached) is recorded.
+        # Attached by the graph at C19 so a run's trace includes its LLM spend.
+        self.tracer = tracer
+        self.cache = cache if cache is not None else PromptCache(
+            resolve_path(self.cfg.cache.dir, root),
+            enabled=self.cfg.cache.enabled,
+        )
+
+        self.chains: dict[Role, list[ModelSpec]] = {}
+        all_specs: dict[str, ModelSpec] = {}
+        for role in Role:
+            specs = [ModelSpec.from_config(raw) for raw in self.cfg.roles.get(role.value, ())]
+            self.chains[role] = specs
+            for spec in specs:
+                all_specs[spec.model] = spec
+        if not any(self.chains.values()):
+            raise ProviderError("no model chains configured under llm.roles")
+
+        # Eval mode: one model per role (C27.6, every role since C27.7). The
+        # ablations compare configurations, and with a fallback chain the
+        # model that made a call depends on which limits or outages the run
+        # hit — time of day, not configuration. Pinned, a role's chain is one
+        # model: a minute-window 429 still waits (C27.3), but a day-window
+        # 429 fails the call instead of handing it to another model. Pinning
+        # also confines the chain-wide cache lookup (C3) to the pinned model,
+        # so a response cached from a fallback during development cannot be
+        # reused as the eval's. The judge role is a single model already.
+        for role in Role:
+            pin = self.cfg.pin.get(role.value)
+            if not pin:
+                continue
+            chain = self.chains.get(role, [])
+            pinned = [spec for spec in chain if spec.model == pin]
+            if not pinned:
+                raise ProviderError(
+                    f"llm.pin.{role.value}={pin!r} is not in the {role.value} "
+                    f"chain {[spec.model for spec in chain]}"
+                )
+            self.chains[role] = pinned[:1]
+
+        self.ledger = ledger or QuotaLedger(
+            resolve_path(self.cfg.quota_ledger_path, root),
+            {m: s.limits for m, s in all_specs.items()},
+        )
+
+        self._backends: dict[str, Backend] = backends if backends is not None else {}
+        self._lazy_backends = backends is None
+
+        retry = self.cfg.retry
+        self.max_attempts = retry.max_attempts
+        self.initial_backoff = retry.initial_backoff_s
+        self.backoff_multiplier = retry.backoff_multiplier
+        self.retry_statuses = list(retry.retry_on_status)
+        # Total minute-window waiting allowed per call when the role's chain
+        # is a single pinned model (C32.1).
+        self.max_pinned_wait_s = retry.max_pinned_wait_s
+        self.max_quota_wait_s = retry.max_quota_wait_s
+
+    # -- backends -----------------------------------------------------------
+
+    def _backend(self, name: str) -> Backend:
+        if name not in self._backends:
+            if not self._lazy_backends:
+                raise ProviderError(f"backend {name!r} not injected")
+            if name == "groq":
+                self._backends[name] = GroqBackend()
+            elif name == "gemini":
+                self._backends[name] = GeminiBackend()
+            else:
+                raise ProviderError(f"unknown provider {name!r}")
+        return self._backends[name]
+
+    # -- main entry point ---------------------------------------------------
+
+    def complete(
+        self,
+        system: str,
+        user: str,
+        *,
+        role: Role = Role.GENERATION,
+        temperature: float | None = None,
+        max_output_tokens: int | None = None,
+        json_mode: bool = False,
+        use_cache: bool = True,
+    ) -> LLMResponse:
+        chain = self.chains.get(role) or []
+        if not chain:
+            raise ProviderError(f"no models configured for role {role.value!r}")
+
+        temperature = self.cfg.default_temperature if temperature is None else temperature
+
+        errors: list[str] = []
+        started = self._now()
+
+        # Cache is checked across the ENTIRE chain before any live call.
+        #
+        # The naive alternative — check each model's cache just before calling
+        # it — breaks re-runs. If the first run fell back to the secondary
+        # model, a re-run would miss on the primary, spend real quota there,
+        # and never reach the cached secondary entry. Checking the whole chain
+        # first makes "re-running an unchanged question costs zero" true
+        # regardless of which model answered originally.
+        if use_cache and self.cache.enabled:
+            for index, spec in enumerate(chain):
+                budget = max_output_tokens or spec.max_output_tokens
+                key = PromptCache.make_key(
+                    model=spec.model,
+                    system=system,
+                    user=user,
+                    temperature=temperature,
+                    max_output_tokens=budget,
+                    json_mode=json_mode and spec.supports_json_mode,
+                )
+                hit = self.cache.get(key)
+                if hit is not None:
+                    self._trace_call(
+                        role, hit.model, hit.provider, hit.prompt_tokens,
+                        hit.completion_tokens, hit.total_tokens,
+                        self._now() - started, True, index > 0, 0,
+                    )
+                    return LLMResponse(
+                        text=hit.text,
+                        model=hit.model,
+                        provider=hit.provider,
+                        role=role,
+                        prompt_tokens=hit.prompt_tokens,
+                        completion_tokens=hit.completion_tokens,
+                        total_tokens=hit.total_tokens,
+                        latency_s=self._now() - started,
+                        attempts=0,
+                        fell_back=index > 0,
+                        from_cache=True,
+                    )
+
+        for index, spec in enumerate(chain):
+            budget = max_output_tokens or spec.max_output_tokens
+            est = estimate_tokens(system, user, budget)
+
+            if not self._await_quota(spec, est, errors):
+                continue
+
+            backoff = self.initial_backoff
+            enforce_json = json_mode
+            # A while loop so a pinned model's minute-window waits need not
+            # consume retry attempts (C32.1); see the "wait" branch.
+            attempt = 0
+            minute_waited = 0.0
+            while attempt < self.max_attempts:
+                attempt += 1
+                try:
+                    text, prompt_tok, completion_tok = self._backend(spec.provider).complete(
+                        spec, system, user, temperature, budget, enforce_json
+                    )
+                except Exception as exc:  # noqa: BLE001 - classified below
+                    action = classify(exc, self.retry_statuses)
+                    errors.append(f"{spec.model}: {type(exc).__name__}: {exc}")
+                    if action == "fatal":
+                        raise ProviderError(
+                            f"unrecoverable error from {spec.model}: {exc}"
+                        ) from exc
+                    if action == "retry_plain" and enforce_json:
+                        # Drop server-side JSON enforcement and let the
+                        # structured-output repair layer handle whatever
+                        # comes back; it already copes with fences, trailing
+                        # commas and truncation.
+                        enforce_json = False
+                        log.info(
+                            "%s rejected its own JSON; retrying without "
+                            "provider-side enforcement", spec.model,
+                        )
+                        continue
+                    if action == "retry_plain":
+                        # Enforcement is already off and it still failed, so
+                        # move on — but do NOT mark the model spent. A JSON
+                        # validation failure says nothing about quota, and
+                        # conflating the two burned three models' entire
+                        # daily budgets in five questions on a live run.
+                        log.warning(
+                            "%s could not produce usable JSON — switching "
+                            "model (quota untouched)", spec.model,
+                        )
+                        break
+                    if action == "switch":
+                        # A DAY-window 429: the provider says today's quota
+                        # is gone, so burn the local day budget and stop
+                        # choosing this model. This is the ONLY path that
+                        # exhausts a model.
+                        self._exhaust_locally(spec)
+                        log.warning("daily 429 on %s — switching model", spec.model)
+                        break
+                    if action == "wait":
+                        # A MINUTE-window 429. For the judgment role,
+                        # waiting is the right trade: the eval is not
+                        # latency-bound, and falling through hands the
+                        # report to whichever weaker model has headroom —
+                        # the C27 smoke had both syntheses written by
+                        # fallbacks, one by gpt-oss-20b.
+                        wait = retry_after_seconds(exc) + 0.5
+                        # Pinned (a one-model chain, C27.6/7): there is
+                        # nothing to switch to, so "switching" after three
+                        # attempts just fails the call — and an eval run
+                        # under pinning waits on the minute window dozens of
+                        # times a question (C32 live: 30 waits in 2
+                        # questions). Minute waits then do not consume
+                        # attempts; a total cap per call bounds them.
+                        if (len(chain) == 1 and wait <= self.max_quota_wait_s
+                                and minute_waited + wait <= self.max_pinned_wait_s):
+                            log.warning("minute-window 429 on %s (pinned) — waiting %.1fs",
+                                        spec.model, wait)
+                            self._sleep(wait)
+                            minute_waited += wait
+                            attempt -= 1
+                            continue
+                        if wait <= self.max_quota_wait_s and attempt < self.max_attempts:
+                            log.warning("minute-window 429 on %s — waiting %.1fs",
+                                        spec.model, wait)
+                            self._sleep(wait)
+                            continue
+                        log.warning("minute-window 429 on %s — switching "
+                                    "(day budget untouched)", spec.model)
+                        break
+                    if action == "switch_keep":
+                        log.warning("unclassified 429 on %s — switching "
+                                    "(day budget untouched)", spec.model)
+                        break
+                    if attempt == self.max_attempts:
+                        log.warning("%s failed %d attempts", spec.model, attempt)
+                        break
+                    log.info(
+                        "%s attempt %d failed (%s); retrying in %.1fs",
+                        spec.model, attempt, type(exc).__name__, backoff,
+                    )
+                    self._sleep(backoff)
+                    backoff *= self.backoff_multiplier
+                    continue
+
+                total = prompt_tok + completion_tok
+                # Quota is charged only for calls that actually happened —
+                # a cache hit returns above and never reaches this line.
+                self.ledger.record(spec.model, total, now=self._now())
+                if not text.strip():
+                    # Never cache an empty response: it would poison every
+                    # future run of this prompt with a permanent failure.
+                    errors.append(f"{spec.model}: empty response")
+                    break
+                if use_cache:
+                    self.cache.put(
+                        PromptCache.make_key(
+                            model=spec.model,
+                            system=system,
+                            user=user,
+                            temperature=temperature,
+                            max_output_tokens=budget,
+                            json_mode=enforce_json and spec.supports_json_mode,
+                        ),
+                        CachedResponse(
+                            text=text,
+                            model=spec.model,
+                            provider=spec.provider,
+                            prompt_tokens=prompt_tok,
+                            completion_tokens=completion_tok,
+                            total_tokens=total,
+                            created_at=datetime.now().isoformat(timespec="seconds"),
+                        ),
+                    )
+                self._trace_call(
+                    role, spec.model, spec.provider, prompt_tok, completion_tok,
+                    total, self._now() - started, False, index > 0, attempt,
+                )
+                return LLMResponse(
+                    text=text,
+                    model=spec.model,
+                    provider=spec.provider,
+                    role=role,
+                    prompt_tokens=prompt_tok,
+                    completion_tokens=completion_tok,
+                    total_tokens=total,
+                    latency_s=self._now() - started,
+                    attempts=attempt,
+                    fell_back=index > 0,
+                )
+
+        message = (f"role {role.value!r}: every model in the chain failed or is out of "
+                   f"quota. Tried {[s.model for s in chain]}. Details: {errors}")
+        # C37.4.1. Every node catches this and degrades by design (the critic
+        # keeps the verdicts it has, the router marks claims unresolved), so
+        # the exception never reaches the run. Without a trace event, a run
+        # in which half the critique died of quota was recorded as a normal
+        # result (A09, a2). The note is how the run learns it was degraded.
+        if self.tracer is not None:
+            self.tracer.note(
+                CHAIN_EXHAUSTED,
+                role=role.value if hasattr(role, "value") else str(role),
+                models=[spec.model for spec in chain],
+                day_quota=_mentions_day_quota(message),
+                error=message[:400],
+            )
+        raise QuotaExhausted(message)
+
+    def complete_json(
+        self,
+        system: str,
+        user: str,
+        *,
+        role: Role = Role.GENERATION,
+        required_keys: list[str] | None = None,
+        repair_attempts: int = 1,
+        repair_truncation: bool = True,
+        **kwargs: Any,
+    ) -> tuple[Any, LLMResponse]:
+        """Structured call. Repairs locally first, re-prompts only if needed.
+
+        A re-prompt costs real quota, so local repair (fences, trailing
+        commas, truncation) is always tried first. Pass
+        repair_truncation=False when a silently shortened list would be
+        wrong rather than merely incomplete (claim lists; see structured.py).
+        """
+        from fcr.llm.structured import StructuredOutputError, require_keys
+
+        response = self.complete(system, user, role=role, json_mode=True, **kwargs)
+        last_error: Exception | None = None
+
+        for correction in range(repair_attempts + 1):
+            try:
+                parsed = extract_json(response.text, repair_truncation=repair_truncation)
+                if required_keys:
+                    require_keys(parsed, required_keys, context=f"role={role.value}")
+                return parsed, response
+            except StructuredOutputError as exc:
+                last_error = exc
+                if correction >= repair_attempts:
+                    break
+                log.info("structured output invalid (%s); re-prompting once", exc)
+                response = self.complete(
+                    system,
+                    (
+                        f"{user}\n\n---\nYour previous reply could not be parsed as "
+                        f"JSON ({exc}). Reply with valid JSON only — no prose, no "
+                        f"markdown fences."
+                    ),
+                    role=role,
+                    json_mode=True,
+                    **kwargs,
+                )
+
+        raise StructuredOutputError(
+            f"structured output failed after {repair_attempts + 1} attempts: {last_error}",
+            response.text,
+        )
+
+    # -- quota helpers ------------------------------------------------------
+
+    def _await_quota(self, spec: ModelSpec, est: int, errors: list[str]) -> bool:
+        """Wait out short minute-window blocks; skip the model on day blocks.
+
+        The loop is bounded. Without a cap, a stalled clock or a wait that
+        does not actually clear the window spins forever and the run hangs
+        with no error — the worst possible failure for an overnight eval.
+        Falling through to the next model is always the safer outcome.
+        """
+        for _ in range(_MAX_QUOTA_WAITS):
+            decision = self.ledger.check(spec.model, est, now=self._now())
+            if decision.allowed:
+                return True
+            if not decision.recoverable_today:
+                errors.append(f"{spec.model}: {decision.detail}")
+                log.info("skipping %s — %s", spec.model, decision.detail)
+                return False
+            if decision.wait_seconds > self.max_quota_wait_s:
+                errors.append(
+                    f"{spec.model}: would wait {decision.wait_seconds:.0f}s "
+                    f"({decision.detail})"
+                )
+                return False
+            log.info(
+                "%s rate-limited on %s; waiting %.1fs",
+                spec.model, decision.dimension, decision.wait_seconds,
+            )
+            self._sleep(decision.wait_seconds + 0.5)
+
+        errors.append(
+            f"{spec.model}: quota did not clear after {_MAX_QUOTA_WAITS} waits"
+        )
+        return False
+
+    def prompt_token_budget(self, role: Any) -> int | None:
+        """Largest prompt, in estimate_tokens units, every model in the
+        role's chain can accept in one call.
+
+        Added at C27.3. The pre-call estimate is prompt + the full output
+        reservation, and the ledger refuses a call whose estimate exceeds
+        the model's TPM outright ("single call needs 8092 tokens but TPM
+        ceiling is 8000"). A synthesis prompt carrying 24 passages came to
+        ~6.1K tokens; with the 2,048-token reservation it fit no judgment
+        model at all. Callers that assemble large prompts size them to this.
+
+        The minimum across the chain, so a prompt that fits the primary
+        also fits every fallback. `None` when no model declares a TPM.
+        """
+        chain = self.chains.get(role) or []
+        budgets = [
+            int(spec.limits.tpm) - int(spec.max_output_tokens)
+            for spec in chain
+            if getattr(spec.limits, "tpm", None)
+        ]
+        return min(budgets) if budgets else None
+
+    def _exhaust_locally(self, spec: ModelSpec) -> None:
+        """Mark a model as spent for today after an unexpected 429."""
+        remaining = self.ledger.remaining_tokens_today(spec.model, now=self._now())
+        if remaining:
+            self.ledger.record(spec.model, remaining, now=self._now())
+        elif spec.limits.rpd is not None:
+            self.ledger.record(spec.model, 0, now=self._now())
+
+    def _trace_call(
+        self, role, model, provider, prompt_tok, completion_tok, total,
+        latency_s, from_cache, fell_back, attempts,
+    ) -> None:
+        if self.tracer is None:
+            return
+        self.tracer.llm_call(
+            role=role.value if hasattr(role, "value") else str(role),
+            model=model,
+            provider=provider,
+            prompt_tokens=prompt_tok,
+            completion_tokens=completion_tok,
+            total_tokens=total,
+            latency_s=latency_s,
+            from_cache=from_cache,
+            fell_back=fell_back,
+            attempts=attempts,
+        )
+
+    def quota_report(self) -> str:
+        lines = ["model                          rpm        tpm            rpd       tpd"]
+        for model, s in self.ledger.snapshot(now=self._now()).items():
+            def fmt(pair):
+                used, cap = pair
+                return f"{used}/{cap if cap is not None else '-'}"
+            lines.append(
+                f"{model:30s} {fmt(s['rpm']):10s} {fmt(s['tpm']):14s} "
+                f"{fmt(s['rpd']):9s} {fmt(s['tpd'])}"
+            )
+        return "\n".join(lines)
+
+
+def available_providers() -> dict[str, bool]:
+    return {
+        "groq": has_env("GROQ_API_KEY"),
+        "gemini": has_env("GOOGLE_API_KEY"),
+    }

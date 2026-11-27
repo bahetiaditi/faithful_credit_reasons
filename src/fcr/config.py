@@ -130,6 +130,85 @@ class EvaluationConfig(_Strict):
     perturbation_share: float = Field(gt=0, lt=1)
 
 
+# ---------------------------------------------------------------------------
+# LLM layer (ported from Project 2 in C2). Roles, not a single model: each
+# role is an ordered chain, and a role can be pinned to one model for evals.
+# ---------------------------------------------------------------------------
+
+# generation: writes the letters under test (conditions E0-E3).
+# extraction: turns free-text letters into claim JSON; mechanical work.
+# grader:     the LLM-grader baseline that claim 1b is tested against.
+ROLE_NAMES: tuple[str, ...] = ("generation", "extraction", "grader")
+
+
+class LimitsConfig(_Strict):
+    rpm: int | None = None
+    rpd: int | None = None
+    tpm: int | None = None
+    tpd: int | None = None
+    reset_timezone: str = "UTC"
+
+
+class LLMModelConfig(_Strict):
+    provider: Literal["groq", "gemini"]
+    model: str
+    max_output_tokens: int = Field(default=2048, gt=0)
+    reasoning_effort: Literal["none", "low", "medium", "high"] | None = None
+    thinking_budget: int | None = None
+    supports_json_mode: bool = True
+    supports_system_instruction: bool = True
+    limits: LimitsConfig = LimitsConfig()
+
+
+class RetryConfig(_Strict):
+    max_attempts: int = Field(ge=1)
+    initial_backoff_s: float = Field(ge=0)
+    backoff_multiplier: float = Field(ge=1)
+    retry_on_status: tuple[int, ...]
+    max_quota_wait_s: float = Field(ge=0)
+    max_pinned_wait_s: float = Field(default=600.0, ge=0)
+
+
+class LLMCacheConfig(_Strict):
+    enabled: bool
+    dir: Path
+
+
+class LLMConfig(_Strict):
+    default_temperature: float = Field(ge=0, le=2)
+    quota_ledger_path: Path
+    retry: RetryConfig
+    cache: LLMCacheConfig
+    roles: dict[str, tuple[LLMModelConfig, ...]]
+    pin: dict[str, str | None] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _roles_pins_and_independence(self) -> LLMConfig:
+        unknown = (set(self.roles) | set(self.pin)) - set(ROLE_NAMES)
+        if unknown:
+            raise ValueError(f"unknown LLM roles {sorted(unknown)}; allowed: {list(ROLE_NAMES)}")
+        for role, model in self.pin.items():
+            chain = [m.model for m in self.roles.get(role, ())]
+            if model is not None and model not in chain:
+                raise ValueError(f"pin.{role}={model!r} is not in the {role} chain {chain}")
+        # The grader must never share a model with the generator: a model
+        # grading its own letters invites self-preference bias, which would
+        # contaminate claim 1b (grader vs verifier).
+        generators = {m.model for m in self.roles.get("generation", ())}
+        shared = generators & {m.model for m in self.roles.get("grader", ())}
+        if shared:
+            raise ValueError(f"grader chain shares models with generation: {sorted(shared)}")
+        # One model id must mean one set of limits, or the quota ledger
+        # would account for it inconsistently.
+        seen: dict[str, LimitsConfig] = {}
+        for chain in self.roles.values():
+            for m in chain:
+                if m.model in seen and seen[m.model] != m.limits:
+                    raise ValueError(f"model {m.model!r} is configured with two different limit sets")
+                seen[m.model] = m.limits
+        return self
+
+
 class Config(_Strict):
     project: ProjectConfig
     paths: PathsConfig
@@ -142,6 +221,7 @@ class Config(_Strict):
     recourse: RecourseConfig
     generate: GenerateConfig
     evaluation: EvaluationConfig
+    llm: LLMConfig
 
     @model_validator(mode="after")
     def _splits_cover_all_weeks(self) -> Config:
@@ -186,3 +266,55 @@ def load_config(path: str | os.PathLike[str] | None = None) -> Config:
     with resolved.open() as fh:
         raw = yaml.safe_load(fh)
     return Config.model_validate(raw)
+
+
+def repo_root(path: str | os.PathLike[str] | None = None) -> Path:
+    """The directory that holds configs/. Relative paths in the config resolve against it."""
+    return find_config_path(path).resolve().parent.parent
+
+
+def resolve_path(value: str | os.PathLike[str], root: Path | None = None) -> Path:
+    """Resolve a config path value: absolute stays absolute, relative joins the repo root."""
+    candidate = Path(value)
+    if candidate.is_absolute():
+        return candidate
+    return (root or repo_root()) / candidate
+
+
+# ---------------------------------------------------------------------------
+# Secrets. API keys live in .env at the repo root (gitignored) locally, and in
+# Kaggle Secrets on Kaggle. Names match Project 2 so one .env serves both.
+# ---------------------------------------------------------------------------
+
+_dotenv_loaded = False
+
+
+def _load_dotenv_once() -> None:
+    global _dotenv_loaded
+    if _dotenv_loaded:
+        return
+    _dotenv_loaded = True
+    try:
+        from dotenv import load_dotenv
+    except ImportError:  # pragma: no cover - python-dotenv is a dependency
+        return
+    try:
+        load_dotenv(repo_root() / ".env")
+    except FileNotFoundError:
+        pass
+
+
+def has_env(name: str) -> bool:
+    _load_dotenv_once()
+    return bool(os.environ.get(name, "").strip())
+
+
+def require_env(name: str) -> str:
+    """Fetch a required environment variable, with an error that says how to fix it."""
+    _load_dotenv_once()
+    value = os.environ.get(name, "").strip()
+    if not value:
+        raise RuntimeError(
+            f"environment variable {name} is not set. Copy .env.example to .env at the repo root and fill it in."
+        )
+    return value

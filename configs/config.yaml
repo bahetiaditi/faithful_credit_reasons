@@ -62,3 +62,80 @@ evaluation:                     # Section 7
   bootstrap_resamples: 1000
   stability_seeds: 5
   perturbation_share: 0.01
+
+llm:                            # Section 6.3; ported from Project 2 in C2
+  default_temperature: 0.0
+  # Relative paths resolve against the repo root; both live under the
+  # gitignored .cache/ folder.
+  quota_ledger_path: .cache/quota_ledger.json
+  retry:
+    max_attempts: 3
+    initial_backoff_s: 2.0
+    backoff_multiplier: 2.0
+    retry_on_status: [500, 502, 503, 504]
+    # A 429 is never retried on the same model for a day window; a minute
+    # window is waited out up to this long before falling through.
+    max_quota_wait_s: 90.0
+    # When a role is pinned to one model there is nothing to switch to, so
+    # minute-window waits are bounded per call by this total instead.
+    max_pinned_wait_s: 600
+  cache:
+    # Keep enabled: a cached response is a recorded observation, so results
+    # tables regenerate from the same outputs instead of re-rolling the model.
+    enabled: true
+    dir: .cache/llm
+
+  # Model ids and limits are copied from Project 2's live-probed config
+  # (Nov 2026). Both projects share the same API keys and therefore the same
+  # provider quotas, but each keeps its own ledger. On a day both run, expect
+  # more 429-driven switching than either ledger predicts.
+  roles:
+    # Writes the adverse-action letters under test (E0-E3). The chain is for
+    # development; C19 pins one model so all four conditions use the same one.
+    generation:
+      - provider: groq
+        model: openai/gpt-oss-120b
+        max_output_tokens: 2048
+        reasoning_effort: medium
+        supports_json_mode: true
+        limits: {rpm: 30, rpd: 1000, tpm: 8000, tpd: 200000, reset_timezone: UTC}
+      - provider: groq
+        model: qwen/qwen3.8-27b
+        max_output_tokens: 2048
+        reasoning_effort: medium
+        supports_json_mode: true
+        limits: {rpm: 30, rpd: 1000, tpm: 8000, tpd: 200000, reset_timezone: UTC}
+
+    # Turns free-text letters (E0, E1) into claim JSON for the verifier.
+    # Mechanical, so a smaller model leads.
+    extraction:
+      - provider: groq
+        model: openai/gpt-oss-20b
+        max_output_tokens: 1024
+        reasoning_effort: low
+        supports_json_mode: true
+        limits: {rpm: 30, rpd: 1000, tpm: 8000, tpd: 200000, reset_timezone: UTC}
+      - provider: gemini
+        model: gemma-4-31b-it
+        max_output_tokens: 2048
+        supports_json_mode: false          # Gemma: no JSON mode; local repair handles it
+        supports_system_instruction: false # Gemma: no system role; folded into the prompt
+        limits: {rpm: 30, rpd: 14400, tpm: 16000, reset_timezone: America/Los_Angeles}
+
+    # The Explingo-style LLM grader that claim 1b compares with the verifier.
+    # A different provider and family from generation, enforced on load, so
+    # no model grades its own letters. Single model: a grader that changes
+    # model mid-run makes its scores incomparable.
+    grader:
+      - provider: gemini
+        model: gemini-3.1-flash-lite
+        max_output_tokens: 1024
+        thinking_budget: 0
+        supports_json_mode: true
+        limits: {rpm: 15, rpd: 500, tpm: 250000, reset_timezone: America/Los_Angeles}
+
+  # Pin a role to one model for evaluation runs (set in C19). null = use the chain.
+  pin:
+    generation: null
+    extraction: null
+    grader: null
