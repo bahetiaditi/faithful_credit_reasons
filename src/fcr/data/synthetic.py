@@ -52,7 +52,7 @@ from pathlib import Path
 import numpy as np
 import polars as pl
 
-GENERATOR_VERSION = 5
+GENERATOR_VERSION = 6
 
 # Real column names, taken from the public ETL write-up cited in REFERENCE.md
 # Section 4. Everything else is invented and marked [synthetic] in the
@@ -352,6 +352,12 @@ def generate_synthetic_dataset(root: str | Path, spec: SyntheticSpec | None = No
     # np.where evaluates both branches, so the upper bound must be valid for every row.
     dpd_draw = rng.integers(1, np.maximum(worst_dpd[b_owner], 1) + 1)
     b_dpd = np.where(has_dpd[b_owner] & (rng.random(nb) < 0.4), dpd_draw, 0)
+    # v6: the payment period also as separate year and month columns (real names), as in
+    # the real table; 5% fall after the decision. A separate generator keeps every other
+    # synthetic value identical to v5.
+    ym_rng = np.random.default_rng(spec.seed + 1139)
+    ym_days = np.where(ym_rng.random(nb) < 0.05, -40, 30 * (b_month + 1))
+    ym_dates = [decision[o] - timedelta(days=int(d)) for o, d in zip(b_owner, ym_days)]
     bureau2 = pl.DataFrame(
         {
             "case_id": np.array([r[1] for r in b_rows], dtype=np.int64),
@@ -362,6 +368,8 @@ def generate_synthetic_dataset(root: str | Path, spec: SyntheticSpec | None = No
             "syn_pmtsdate_1033D": [
                 _iso(decision[o] - timedelta(days=int(30 * (mo + 1)))) for o, mo in zip(b_owner, b_month)
             ],
+            "pmts_year_1139T": np.array([d.year for d in ym_dates], dtype=np.float64),
+            "pmts_month_158T": np.array([d.month for d in ym_dates], dtype=np.float64),
         }
     )
     for stem in _write_chunks(bureau2, train_dir, "credit_bureau_a", 2, 2):
@@ -370,6 +378,8 @@ def generate_synthetic_dataset(root: str | Path, spec: SyntheticSpec | None = No
         "syn_pmtsdpd_1031P": "[synthetic] Days past due for a monthly payment of a bureau contract.",
         "syn_pmtsoverdue_1032A": "[synthetic] Overdue amount for a monthly payment of a bureau contract.",
         "syn_pmtsdate_1033D": "[synthetic] Date of the monthly payment record.",
+        "pmts_year_1139T": "Year of payment for the active contract (num_group1) - num_group2 refers to payment.",
+        "pmts_month_158T": "Month of payment for the active contract (num_group1) - num_group2 refers to payment.",
     }
 
     # ---- tax registries: one source, three successive providers (C4) ----

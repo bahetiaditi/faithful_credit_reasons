@@ -106,6 +106,19 @@ model:                          # Sections 5.2 and 5.3
   target_approval_rate: 0.85    # tau is a policy choice, set on validation weeks
   calibration_method: isotonic  # isotonic | sigmoid
   optuna_trials: 50
+  scorecard:                    # S0, Section 5.2 (C8)
+    max_features: 30
+    min_iv: 0.02                # below this a feature carries almost no signal
+    max_iv: 0.5                 # above this it is suspiciously strong: flagged and left out
+    max_woe_correlation: 0.6    # greedy by IV; a feature this correlated with a chosen one is skipped
+    exclude_masked: true        # masked (M) features can never be named in a reason
+    max_n_prebins: 20
+    min_prebin_size: 0.05
+    regularization_c: 1.0       # L2 logistic regression on WoE
+    pdo: 20                     # points to double the odds
+    base_points: 600            # score at base_odds
+    base_odds: 50               # good:bad odds at base_points
+    corr_sample_cases: 200000
 
 explain:                        # Section 6
   max_reasons: 4                # Reg B commentary: more than four is unlikely to help

@@ -1,0 +1,35 @@
+{
+ "commit": "fb71b79",
+ "n_features": 467,
+ "cases": 1526659,
+ "sample_cases": 50000,
+ "status_counts": [
+  {
+   "status": "dropped:constant",
+   "len": 30
+  },
+  {
+   "status": "dropped:correlated",
+   "len": 194
+  },
+  {
+   "status": "dropped:missing",
+   "len": 268
+  },
+  {
+   "status": "excluded:protected",
+   "len": 13
+  },
+  {
+   "status": "excluded:proxy",
+   "len": 13
+  },
+  {
+   "status": "kept",
+   "len": 467
+  }
+ ],
+ "elapsed_s": 87.1,
+ "peak_memory_gb": 16.51,
+ "failures": []
+}

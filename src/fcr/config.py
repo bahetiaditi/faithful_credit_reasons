@@ -142,10 +142,32 @@ class ProtectedConfig(_Strict):
         return self
 
 
+class ScorecardConfig(_Strict):
+    max_features: int = Field(ge=2, le=60)
+    min_iv: float = Field(ge=0)
+    max_iv: float = Field(gt=0)
+    max_woe_correlation: float = Field(gt=0, le=1)
+    exclude_masked: bool = True
+    max_n_prebins: int = Field(ge=2)
+    min_prebin_size: float = Field(gt=0, lt=0.5)
+    regularization_c: float = Field(gt=0)
+    pdo: float = Field(gt=0)
+    base_points: float
+    base_odds: float = Field(gt=0)
+    corr_sample_cases: int = Field(gt=0)
+
+    @model_validator(mode="after")
+    def _iv_band(self) -> ScorecardConfig:
+        if self.min_iv >= self.max_iv:
+            raise ValueError("scorecard.min_iv must be below max_iv")
+        return self
+
+
 class ModelConfig(_Strict):
     target_approval_rate: float = Field(gt=0, lt=1)
     calibration_method: Literal["isotonic", "sigmoid"]
     optuna_trials: int = Field(gt=0)
+    scorecard: ScorecardConfig
 
 
 class ExplainConfig(_Strict):

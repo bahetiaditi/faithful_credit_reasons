@@ -50,6 +50,9 @@ class DateRoles(BaseModel):
     anchors: dict[str, tuple[str, ...]] = {}
     # Reviewed anchor-drop shares: the C5 smoke warns only above max(0.20, this + 0.05).
     anchor_drop_expected: dict[str, float] = {}
+    # Dates stored as a separate year column and month column (T suffix), composed
+    # into one date (end of month) and then treated as an event date (C5.2).
+    year_month_pairs: dict[str, tuple[tuple[str, str], ...]] = {}
 
     @model_validator(mode="after")
     def _roles_are_disjoint(self) -> DateRoles:
@@ -64,6 +67,10 @@ class DateRoles(BaseModel):
             raise ValueError(f"anchor_drop_expected for families without an anchor: {sorted(unknown)}")
         if any(not 0.0 <= v < 1.0 for v in self.anchor_drop_expected.values()):
             raise ValueError("anchor_drop_expected shares must be in [0, 1)")
+        for family, pairs in self.year_month_pairs.items():
+            for year, month in pairs:
+                if "year" not in year or "month" not in month or not (year.endswith("T") and month.endswith("T")):
+                    raise ValueError(f"{family}: ({year}, {month}) is not a year/month T-column pair")
         return self
 
     def anchor_drop_limit(self, family: str, default: float = 0.20) -> float:
@@ -101,13 +108,54 @@ def attach_decision_dates(df: pl.DataFrame, decisions: pl.DataFrame) -> pl.DataF
     return df.join(decisions.rename({"date_decision": DECISION}), on="case_id", how="left")
 
 
+MAX_PAIR_MISMATCH = 0.01
+
+
+def composed_date_name(year_column: str) -> str:
+    """dpdmaxdateyear_596T -> dpdmaxdateym_596D (keeps the suffix convention: a D column)."""
+    stem, code = year_column[:-1].rsplit("_", 1)
+    return f"{stem.replace('year', 'ym')}_{code}D"
+
+
+def compose_year_month(df: pl.DataFrame, pairs: tuple[tuple[str, str], ...]) -> tuple[pl.DataFrame, dict]:
+    """Replace each (year, month) column pair with one date at the end of that month.
+
+    End of month is the cautious choice: anything in the decision month counts
+    as possibly after the decision, so step 3 nulls it. Raises if a pair's
+    missingness disagrees on more than 1% of rows, which means the pair is wrong.
+    """
+    diag = {}
+    for year, month in pairs:
+        present = (year in df.columns, month in df.columns)
+        if present == (False, False):
+            continue
+        if present != (True, True):
+            raise ValueError(f"year/month pair ({year}, {month}): only one column is in the table")
+        y, m = pl.col(year).cast(pl.Int32), pl.col(month).cast(pl.Int32)
+        valid = y.is_not_null() & m.is_between(1, 12)
+        stats = df.select(
+            (pl.col(year).is_null() != pl.col(month).is_null()).sum().alias("mismatch"),
+            pl.col(year).is_not_null().sum().alias("non_null"),
+            (pl.col(year).is_not_null() & ~valid).sum().alias("invalid"),
+        ).row(0, named=True)
+        if df.height and stats["mismatch"] / df.height > MAX_PAIR_MISMATCH:
+            raise ValueError(f"({year}, {month}) disagree on missingness in {stats['mismatch']:,} of {df.height:,} rows")
+        name = composed_date_name(year)
+        df = df.with_columns(
+            pl.when(valid).then(pl.date(y, m.clip(1, 12), 1).dt.month_end()).otherwise(None).alias(name)
+        ).drop(year, month)
+        diag[name] = {"from": [year, month], **stats}
+    return df, diag
+
+
 def apply_date_rules(df: pl.DataFrame, family_key: str, roles: DateRoles) -> tuple[pl.DataFrame, dict]:
-    """Apply steps 1-4 to one chunk that already carries DECISION. Returns the frame and counts."""
-    cols = date_columns(df)
+    """Apply steps 0-4 to one chunk that already carries DECISION. Returns the frame and counts."""
     if DECISION not in df.columns:
         raise ValueError("attach_decision_dates must run before apply_date_rules")
+    df, composed = compose_year_month(df, roles.year_month_pairs.get(family_key, ()))
+    cols = date_columns(df)
     diag: dict = {"family": family_key, "rows_in": df.height, "sentinels_nulled": {}, "future_events_nulled": {},
-                  "scheduled_future_kept": {}, "lag_profile": {}}
+                  "scheduled_future_kept": {}, "lag_profile": {}, "year_month_composed": composed}
 
     # 1. parse and null sentinels
     parsed = df.with_columns([_as_date(df, c).alias(c) for c in cols])

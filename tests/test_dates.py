@@ -6,7 +6,10 @@ import polars as pl
 import pytest
 
 from fcr.config import load_config, resolve_path
-from fcr.data.dates import DECISION, DateRoles, apply_date_rules, attach_decision_dates, load_date_roles
+from fcr.data.dates import (
+    DECISION, DateRoles, apply_date_rules, attach_decision_dates, composed_date_name, compose_year_month,
+    load_date_roles,
+)
 
 ROLES = DateRoles.model_validate({
     "sentinels": {"before": "1901-01-01", "after": "2090-01-01"},
@@ -154,3 +157,57 @@ def test_anchor_drop_expectations_raise_the_warning_limit_only_where_reviewed():
     assert roles.anchor_drop_limit("u_1") == pytest.approx(0.20)
     with pytest.raises(ValueError, match="without an anchor"):
         DateRoles(sentinels={"before": "1901-01-01", "after": "2090-01-01"}, anchor_drop_expected={"x_1": 0.1})
+
+
+# --- C5.2: year + month columns become one date ------------------------------
+
+YM_ROLES = DateRoles.model_validate({
+    "sentinels": {"before": "1901-01-01", "after": "2090-01-01"},
+    "year_month_pairs": {"t_1": [["dpdmaxdateyear_5T", "dpdmaxdatemonth_6T"]]},
+})
+
+
+def test_composed_names_keep_the_suffix_convention():
+    from fcr.data.naming import feature_suffix
+    assert composed_date_name("dpdmaxdateyear_596T") == "dpdmaxdateym_596D"
+    assert composed_date_name("pmts_year_1139T") == "pmts_ym_1139D"
+    assert feature_suffix(composed_date_name("overdueamountmaxdateyear_2T")) == "D"
+
+
+def test_year_and_month_become_end_of_month_then_follow_the_event_rules():
+    df = pl.DataFrame({
+        "case_id": [1, 1, 1, 2, 2],
+        "num_group1": [0, 1, 2, 0, 1],
+        "dpdmaxdateyear_5T": [2019.0, 2020.0, None, 2019.0, 2020.0],
+        "dpdmaxdatemonth_6T": [11.0, 1.0, None, 13.0, 1.0],
+    })
+    out, diag = apply_date_rules(attach_decision_dates(df, DECISIONS), "t_1", YM_ROLES)
+    assert "dpdmaxdateyear_5T" not in out.columns and "dpdmaxdatemonth_6T" not in out.columns
+    days = out["dpdmaxdateym_5D"].to_list()
+    # 2019-11-30 is 41 days before 2020-01-10; January 2020 ends after both decisions, so it is
+    # treated as possibly after them and nulled; month 13 is invalid
+    assert days == [41, None, None, None, None]
+    assert diag["year_month_composed"]["dpdmaxdateym_5D"]["invalid"] == 1
+    assert diag["future_events_nulled"]["dpdmaxdateym_5D"] == 2
+
+
+def test_a_wrong_pair_is_caught_by_its_missingness():
+    df = pl.DataFrame({"dpdmaxdateyear_5T": [2019.0] * 50 + [None] * 50,
+                       "dpdmaxdatemonth_6T": [None] * 50 + [3.0] * 50})
+    with pytest.raises(ValueError, match="disagree on missingness"):
+        compose_year_month(df, (("dpdmaxdateyear_5T", "dpdmaxdatemonth_6T"),))
+    with pytest.raises(ValueError, match="only one column"):
+        compose_year_month(df.drop("dpdmaxdatemonth_6T"), (("dpdmaxdateyear_5T", "dpdmaxdatemonth_6T"),))
+
+
+def test_configured_pairs_are_real_year_month_columns(repo_root):
+    roles = load_date_roles(repo_root / "configs" / "date_roles.yaml")
+    registry = json.loads((repo_root / "results" / "c04" / "schema_registry.json").read_text())
+    columns = {fam: {c["name"] for c in info["columns"]} for fam, info in registry["families"].items()}
+    assert sum(len(p) for p in roles.year_month_pairs.values()) == 8
+    for family, pairs in roles.year_month_pairs.items():
+        for year, month in pairs:
+            assert {year, month} <= columns[family], (family, year, month)
+    t_columns = {c for fam in columns.values() for c in fam if c.endswith("T") and ("year" in c or "month" in c)}
+    paired = {c for pairs in roles.year_month_pairs.values() for p in pairs for c in p}
+    assert t_columns == paired, f"unpaired year/month columns: {sorted(t_columns - paired)}"

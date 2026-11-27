@@ -73,6 +73,7 @@ def main() -> int:
     lag = defaultdict(lambda: defaultdict(int))
     sources = defaultdict(lambda: defaultdict(int))
     warnings: list[str] = []
+    composed: dict[str, dict] = {}
 
     print(f"\n  {'family':<20}{'cases':>11}{'feats':>7}{'rows in':>13}{'rows out':>13}{'anchor drop':>12}"
           f"{'fut.null':>10}{'sentinel':>10}{'masked':>11}{'sec':>7}{'peakGB':>8}")
@@ -87,6 +88,11 @@ def main() -> int:
             for kind in ("sentinels_nulled", "future_events_nulled", "scheduled_future_kept", "masked_nulled"):
                 for col, n in d.get(kind, {}).items():
                     totals[kind][col] += n
+        for d in result.diagnostics:
+            for name, c in d.get("year_month_composed", {}).items():
+                acc = composed.setdefault(f"{d['family']}.{name}", {"from": c["from"], "non_null": 0, "mismatch": 0, "invalid": 0})
+                for k in ("non_null", "mismatch", "invalid"):
+                    acc[k] += c[k]
         for d in result.diagnostics:
             src = sources[d["family"]]
             src["rows_in"] += d["rows_in"]
@@ -167,6 +173,13 @@ def main() -> int:
     dates = pl.DataFrame(date_rows) if date_rows else pl.DataFrame()
     dates.write_csv(out / "date_diagnostics.csv")
     total_features = sum(s["features"] for s in summary.values())
+
+    print("\n== Year + month columns composed into dates (C5.2)")
+    for name, c in sorted(composed.items()):
+        print(f"  {name:<40} from {'+'.join(c['from']):<58} {c['non_null']:>12,} values  "
+              f"pattern mismatch {c['mismatch']:,}  invalid {c['invalid']:,}")
+    if not composed:
+        print("  (none in this data)")
 
     print("\n== Date rules (largest effects)")
     if dates.height:

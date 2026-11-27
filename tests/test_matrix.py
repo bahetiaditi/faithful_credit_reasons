@@ -107,3 +107,10 @@ def test_constant_drops_record_their_minority_count(built):
             assert r["minority_rows"] is not None and r["minority_rows"] < 20
         elif r["status"] == "kept" and r["kind"] != "category":
             assert r["minority_rows"] >= 20, r["feature"]
+
+
+def test_year_month_columns_arrive_as_composed_dates(built):
+    _, _, manifest, _ = built
+    sources = set(manifest["source"])
+    assert not sources & {"pmts_year_1139T", "pmts_month_158T"}
+    assert "pmts_ym_1139D" in sources

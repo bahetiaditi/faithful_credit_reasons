@@ -104,6 +104,10 @@ instead of rebuilding it from the raw competition files (about 6 minutes and
    `fcr.data.dataset.locate_feature_dataset` finds it wherever Kaggle mounts it,
    by the name inside its `dataset_manifest.json`.
 
+To run a model script in the same Save & Run All (so a rebuild and its first
+use cost one run), point it at the fresh output instead of the attached Dataset:
+`!FCR_FEATURES_DIR=/kaggle/working/fcr_features python /tmp/fcr/scripts/smoke_cNN.py`.
+
 Every load re-checks the files' hashes against the manifest, the feature
 columns against its feature list, and the split against
 `configs/split_lock.json`, so a model cannot train on a table that changed.
