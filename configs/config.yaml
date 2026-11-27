@@ -1,0 +1,63 @@
+# Single source of every tunable value. Code reads this through fcr.config,
+# which validates it, so a typo or an impossible value fails at load time
+# instead of silently changing a result. Section numbers refer to REFERENCE.md.
+
+project:
+  seed: 42
+
+paths:
+  # Local working data (gitignored). Holds the 50k-case sample from C7.
+  local_data_dir: data
+  results_dir: results
+  # Where the competition files appear when the dataset is attached on Kaggle.
+  kaggle_competition_dir: /kaggle/input/home-credit-credit-risk-model-stability
+
+data:
+  competition_slug: home-credit-credit-risk-model-stability
+  file_format: parquet          # the competition ships parquet_files/ and csv_files/
+  max_week_num: 91              # WEEK_NUM runs 0..91 in the training base (Section 4)
+
+split:                          # Section 4.5; inclusive week ranges, frozen before modelling
+  train_weeks: [0, 63]
+  validation_weeks: [64, 77]
+  test_weeks: [78, 91]
+
+features:                       # Section 5.1
+  max_missing_share: 0.95
+  max_abs_spearman: 0.95
+  local_sample_cases: 50000
+
+protected:                      # Section 4.4: excluded from the model, kept for slice analysis only
+  columns:
+    - birth_259D                # birth date, hence age
+    - familystate_447L          # family status
+    - incometype_1044T          # contains disability-coded categories
+  disability_income_values: [HANDICAPPED, HANDICAPPED_2, HANDICAPPED_3]
+  disability_recode_value: OTHER
+
+model:                          # Sections 5.2 and 5.3
+  target_approval_rate: 0.85    # tau is a policy choice, set on validation weeks
+  calibration_method: isotonic  # isotonic | sigmoid
+  optuna_trials: 50
+
+explain:                        # Section 6
+  max_reasons: 4                # Reg B commentary: more than four is unlikely to help
+  shap_background_rows: 1000
+  reference_population: approved_near_threshold   # all | approved_near_threshold
+
+recourse:                       # Section 6.4
+  bound_percentiles: [5, 95]
+  max_groups_changed: 2
+
+generate:                       # Section 6.3; provider and model are pinned in C19
+  max_regenerations: 2
+  temperature: 0.0
+
+evaluation:                     # Section 7
+  deterministic_explain_max: 5000
+  prompt_dev_n: 50
+  llm_eval_n: 300
+  annotate_per_condition: 15
+  bootstrap_resamples: 1000
+  stability_seeds: 5
+  perturbation_share: 0.01

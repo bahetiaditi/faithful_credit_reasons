@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Environments and secrets
+.venv/
+venv/
+.env
+
+# Data never enters git: competition files, samples, feature tables, models
+data/*
+!data/.gitkeep
+*.parquet
+*.csv
+!configs/**/*.csv
+*.zip
+*.lgb
+*.joblib
+*.pkl
+
+# LLM cache and traces (large, regenerable)
+.cache/
+traces/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Notebooks: checkpoints only; the notebooks themselves are committed
+.ipynb_checkpoints/
