@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "splits": {
+    "train": {
+      "weeks": [
+        0,
+        63
+      ],
+      "cases": 1282082,
+      "defaults": 42524,
+      "first_decision": "2019-01-01",
+      "last_decision": "2020-03-23",
+      "case_fingerprint": "506e47aa203aded0"
+    },
+    "validation": {
+      "weeks": [
+        64,
+        77
+      ],
+      "cases": 92870,
+      "defaults": 2255,
+      "first_decision": "2020-03-24",
+      "last_decision": "2020-06-29",
+      "case_fingerprint": "b55d227bde815ea1"
+    },
+    "test": {
+      "weeks": [
+        78,
+        91
+      ],
+      "cases": 151707,
+      "defaults": 3215,
+      "first_decision": "2020-06-30",
+      "last_decision": "2020-10-05",
+      "case_fingerprint": "bddb3ac4bd6c6e9a"
+    }
+  }
+}
