@@ -28,7 +28,7 @@ def test_missing_and_constant_rules():
         "flat": [1.0] * 100,
         "fine": list(np.arange(100, dtype=float)),
     })
-    r = missing_and_constant(df, ["sparse", "flat", "fine"], max_missing=0.95, max_top=0.995)
+    r = missing_and_constant(df, ["sparse", "flat", "fine"], max_missing=0.95, min_minority=5)
     assert r["sparse"].status == "dropped:missing" and r["sparse"].train_missing_share == pytest.approx(0.97)
     assert r["flat"].status == "dropped:constant" and r["flat"].top_share == 1.0
     assert r["fine"].status == "kept"
@@ -113,3 +113,27 @@ def test_a_feature_that_caused_a_drop_is_not_dropped_later():
     for rec in r.values():
         if rec.status == "dropped:correlated":
             assert rec.correlated_with in kept
+
+
+def test_rare_but_populated_values_survive_the_constant_rule():
+    """0.4% non-zero is a 99.6% top share, but 400 of 100k rows is enough to learn from."""
+    n = 100_000
+    dpd = [0.0] * (n - 400) + [30.0] * 400
+    df = pl.DataFrame({"dpd": dpd, "almost": [0.0] * (n - 50) + [1.0] * 50})
+    r = missing_and_constant(df, ["dpd", "almost"], max_missing=0.95, min_minority=100)
+    assert r["dpd"].status == "kept" and r["dpd"].minority_rows == 400
+    assert r["dpd"].top_share == pytest.approx(0.996)
+    assert r["almost"].status == "dropped:constant" and r["almost"].minority_rows == 50
+
+
+def test_preferred_ratios_win_their_correlation_ties():
+    rng = np.random.default_rng(4)
+    debt = np.where(rng.random(3000) < 0.7, 0.0, rng.gamma(2.0, 1000.0, 3000))
+    income = rng.uniform(900, 1100, 3000)
+    df = pl.DataFrame({"currdebt_1A": debt, "debt_to_income__ratio": debt / income})
+    missing = {"currdebt_1A": 0.0, "debt_to_income__ratio": 0.001}
+    plain = correlation_screen(df, list(df.columns), missing, 0.95)
+    assert plain["debt_to_income__ratio"].status == "dropped:correlated", "precondition: the raw amount wins on missing share"
+    r = correlation_screen(df, list(df.columns), missing, 0.95, preferred={"debt_to_income__ratio"})
+    assert r["debt_to_income__ratio"].status == "kept"
+    assert r["currdebt_1A"].correlated_with == "debt_to_income__ratio"

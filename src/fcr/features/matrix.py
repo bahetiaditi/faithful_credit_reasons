@@ -106,7 +106,7 @@ def build_model_matrix(feature_dir: Path, manifest: pl.DataFrame, base: pl.DataF
             else:
                 candidates.append(f)
         train = frame.join(train_ids, on="case_id", how="right").select(candidates)
-        records |= missing_and_constant(train, candidates, fcfg.max_missing_share, fcfg.max_top_share)
+        records |= missing_and_constant(train, candidates, fcfg.max_missing_share, fcfg.min_minority_rows)
 
     # 4. correlation, across families, on a seeded sample of training cases
     numeric_kept = [f for f, r in records.items() if r.status == "kept" and specs[f]["kind"] != "category"]
@@ -118,7 +118,8 @@ def build_model_matrix(feature_dir: Path, manifest: pl.DataFrame, base: pl.DataF
             sample = sample.join(frame.select("case_id", *cols), on="case_id", how="left")
     priority = {f: STAT_PRIORITY.get(specs[f]["stat"], 9) for f in numeric_kept}
     corr = correlation_screen(sample, numeric_kept, {f: records[f].train_missing_share or 0.0 for f in numeric_kept},
-                              fcfg.max_abs_spearman, priority)
+                              fcfg.max_abs_spearman, priority,
+                              preferred={f for f in numeric_kept if specs[f]["stat"] == "ratio"})
     for f, rec in corr.items():
         if rec.status != "kept":
             records[f].status, records[f].correlated_with, records[f].rho = rec.status, rec.correlated_with, rec.rho
@@ -146,7 +147,7 @@ def build_model_matrix(feature_dir: Path, manifest: pl.DataFrame, base: pl.DataF
         registry.append({
             "feature": f, "family": spec["family"], "source": spec["source"], "stat": spec["stat"],
             "kind": spec["kind"], "source_suffix": _source_suffix(spec["source"]), "status": rec.status,
-            "train_missing_share": rec.train_missing_share, "top_share": rec.top_share,
+            "train_missing_share": rec.train_missing_share, "top_share": rec.top_share, "minority_rows": rec.minority_rows,
             "correlated_with": rec.correlated_with, "rho": rec.rho,
             "category_levels": len(levels[f]) if f in levels else None,
         })

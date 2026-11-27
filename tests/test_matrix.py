@@ -14,7 +14,7 @@ from fcr.features.screen import OTHER_LEVEL
 @pytest.fixture(scope="module")
 def built(synthetic, repo_root, tmp_path_factory):
     cfg = load_config(repo_root / "configs" / "config.yaml")
-    cfg = cfg.model_copy(update={"features": cfg.features.model_copy(update={"corr_sample_cases": 1500})})
+    cfg = cfg.model_copy(update={"features": cfg.features.model_copy(update={"corr_sample_cases": 1500, "min_minority_rows": 20})})
     roles = load_date_roles(resolve_path(cfg.features.date_roles_file, repo_root))
     families = discover_families(synthetic.train_dir)
     base = load_base(families)
@@ -79,6 +79,7 @@ def test_ratios_are_added_and_screened(built):
     ratios = {r["feature"]: r for r in result.registry if r["stat"] == "ratio"}
     assert "annuity_to_credit__ratio" in ratios and "credit_to_income__ratio" in ratios
     assert "debt_to_income__ratio" not in ratios, "inputs absent in the fixtures, so it is skipped, not faked"
+    assert all(r["status"] == "kept" for r in ratios.values()), "configured ratios are never screened out as duplicates"
 
 
 def test_categories_are_capped_to_training_levels(built):
@@ -97,3 +98,12 @@ def test_correlated_duplicates_are_dropped(built):
     for r in dropped:
         assert abs(r["rho"]) > 0.95 and r["correlated_with"]
         assert statuses[r["correlated_with"]] == "kept", f"{r['feature']} points at a dropped feature"
+
+
+def test_constant_drops_record_their_minority_count(built):
+    *_, result = built
+    for r in result.registry:
+        if r["status"] == "dropped:constant":
+            assert r["minority_rows"] is not None and r["minority_rows"] < 20
+        elif r["status"] == "kept" and r["kind"] != "category":
+            assert r["minority_rows"] >= 20, r["feature"]

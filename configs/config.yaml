@@ -12,6 +12,9 @@ paths:
   # Where Kaggle mounts the competition (observed Nov 2026); fcr.data.paths falls
   # back to other known layouts if this ever changes.
   kaggle_competition_dir: /kaggle/input/competitions/home-credit-credit-risk-model-stability
+  # The private Kaggle Dataset holding the C7 feature table. Its manifest carries
+  # this name, which is how fcr.data.dataset finds it wherever Kaggle mounts it.
+  feature_dataset_name: fcr-features
 
 data:
   competition_slug: home-credit-credit-risk-model-stability
@@ -43,7 +46,9 @@ features:                       # Section 5.1
   # schema so features describe the applicant, not which provider was active.
   # C6 screening, all measured on training weeks only so validation and test
   # never influence which features exist.
-  max_top_share: 0.995            # near-constant: most frequent non-null value above this share
+  min_minority_rows: 1000         # near-constant: fewer training rows than this differ from the most frequent value
+                                  # (C6.1: a share rule at 99.5% dropped days-past-due and overdue amounts that
+                                  # still had 1,100-5,000 informative training cases; the survivors sit below 240)
   max_category_levels: 50         # categories keep their 50 most frequent training levels; the rest -> "__other__"
   corr_sample_cases: 200000       # training cases sampled for the Spearman screen
   # Affordability ratios (Section 5.1 step 7), over aggregated feature names.

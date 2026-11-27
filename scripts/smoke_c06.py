@@ -29,32 +29,13 @@ from pathlib import Path
 
 import polars as pl
 
-from fcr.config import load_config, resolve_path
-from fcr.data.build import build_all, write_family
-from fcr.data.dates import load_date_roles
+from fcr.config import load_config
+from fcr.data.build import ensure_features
 from fcr.data.loader import discover_families, load_base
 from fcr.data.paths import locate_competition_dir
 from fcr.data.synthetic import SyntheticSpec, generate_synthetic_dataset
 from fcr.features.matrix import KEYS, build_model_matrix
 from fcr.runinfo import git_commit, peak_rss_gb
-
-
-def _ensure_features(families, base, cfg, feature_dir: Path, manifest_path: Path) -> pl.DataFrame:
-    """Reuse C5's output when present; otherwise rebuild it (Kaggle sessions do not keep /kaggle/working)."""
-    if manifest_path.is_file() and feature_dir.is_dir() and any(feature_dir.glob("*.parquet")):
-        print(f"reusing C5 features at {feature_dir}")
-        return pl.read_csv(manifest_path)
-    print(f"C5 features not found; rebuilding into {feature_dir}")
-    roles = load_date_roles(resolve_path(cfg.features.date_roles_file))
-    specs = []
-    for result in build_all(families, base, cfg, roles):
-        write_family(result, feature_dir)
-        specs += [s.as_dict() for s in result.specs]
-        print(f"  built {result.key} ({len(result.specs)} features)")
-    manifest = pl.DataFrame(specs)
-    manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    manifest.write_csv(manifest_path)
-    return manifest
 
 
 def main() -> int:
@@ -68,7 +49,7 @@ def main() -> int:
         root = Path(tempfile.mkdtemp(prefix="fcr_smoke_c06_"))
         generate_synthetic_dataset(root, SyntheticSpec(seed=cfg.project.seed))
         work = root
-        cfg = cfg.model_copy(update={"features": cfg.features.model_copy(update={"corr_sample_cases": 1500})})
+        cfg = cfg.model_copy(update={"features": cfg.features.model_copy(update={"corr_sample_cases": 1500, "min_minority_rows": 20})})
     else:
         root = locate_competition_dir(cfg)
         if root is None:
@@ -79,7 +60,7 @@ def main() -> int:
 
     families = discover_families(root / "parquet_files" / "train")
     base = load_base(families)
-    manifest = _ensure_features(families, base, cfg, work / "c05" / "features", work / "c05" / "feature_manifest.csv")
+    manifest = ensure_features(families, base, cfg, work / "c05" / "features", work / "c05" / "feature_manifest.csv")
 
     out = work / "c06"
     shutil.rmtree(out, ignore_errors=True)

@@ -1,0 +1,40 @@
+{
+ "commit": "dd43195",
+ "matrix_rows": 1526659,
+ "matrix_features": 450,
+ "status_counts": {
+  "dropped:correlated": 183,
+  "dropped:constant": 58,
+  "excluded:proxy": 13,
+  "dropped:missing": 268,
+  "kept": 450,
+  "excluded:protected": 13
+ },
+ "kept_by_family": {
+  "applprev_1": 85,
+  "applprev_2": 4,
+  "credit_bureau_a_1": 151,
+  "credit_bureau_a_2": 32,
+  "credit_bureau_b_1": 0,
+  "credit_bureau_b_2": 0,
+  "debitcard_1": 3,
+  "deposit_1": 7,
+  "derived": 3,
+  "other_1": 0,
+  "person_1": 11,
+  "person_2": 5,
+  "static_0": 125,
+  "static_cb_0": 18,
+  "tax_registry_1": 6
+ },
+ "slices_columns": [
+  "case_id",
+  "age_years",
+  "sex",
+  "family_status",
+  "disability_income_type"
+ ],
+ "elapsed_s": 87.8,
+ "peak_memory_gb": 16.21,
+ "failures": []
+}

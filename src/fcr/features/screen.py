@@ -8,7 +8,7 @@ the C6 feature registry is the union of those records.
 Order:
     1. exclusion: protected and proxy sources never reach the model matrix
     2. missing: more than max_missing_share null on training cases
-    3. constant: one value (or none) covers more than max_top_share of non-nulls
+    3. constant: fewer than min_minority_rows non-null training rows differ from the most frequent value
     4. correlated: one of each numeric pair with |Spearman rho| above the limit
 Category features that survive keep their most frequent training levels.
 """
@@ -29,6 +29,7 @@ class ScreenRecord:
     status: str = "kept"           # kept | excluded:protected | excluded:proxy | dropped:missing | dropped:constant | dropped:correlated
     train_missing_share: float | None = None
     top_share: float | None = None
+    minority_rows: int | None = None
     correlated_with: str | None = None
     rho: float | None = None
     detail: dict = field(default_factory=dict)
@@ -42,8 +43,15 @@ def exclusion_status(source: str, protected: set[str], proxies: set[str]) -> str
     return None
 
 
-def missing_and_constant(train: pl.DataFrame, features: list[str], max_missing: float, max_top: float) -> dict[str, ScreenRecord]:
-    """Missing share and most-frequent-value share per feature, on training rows."""
+def missing_and_constant(train: pl.DataFrame, features: list[str], max_missing: float,
+                         min_minority: int) -> dict[str, ScreenRecord]:
+    """Missing share, most-frequent-value share and minority count per feature, on training rows.
+
+    The constant rule counts rows rather than a share: on 1.28M training cases a
+    feature that is non-zero for 0.3% of applicants (days past due, overdue
+    amounts) still has thousands of informative rows, and those are exactly the
+    rare, adverse facts a lender's reasons are made of.
+    """
     n = train.height
     records = {}
     nulls = train.select([pl.col(f).null_count() for f in features]).row(0, named=True) if features else {}
@@ -54,9 +62,10 @@ def missing_and_constant(train: pl.DataFrame, features: list[str], max_missing: 
             rec.status = "dropped:missing"
         else:
             col = train[f].drop_nulls()
-            top = col.value_counts(sort=True)["count"][0] / col.len() if col.len() else 1.0
-            rec.top_share = float(top)
-            if top > max_top:
+            top_count = int(col.value_counts(sort=True)["count"][0]) if col.len() else 0
+            rec.top_share = top_count / col.len() if col.len() else 1.0
+            rec.minority_rows = col.len() - top_count
+            if rec.minority_rows < min_minority:
                 rec.status = "dropped:constant"
         records[f] = rec
     return records
@@ -86,7 +95,8 @@ def _exact_spearman(sample: pl.DataFrame, a: str, b: str) -> float | None:
 
 
 def correlation_screen(sample: pl.DataFrame, features: list[str], missing: dict[str, float],
-                       max_abs_rho: float, priority: dict[str, int] | None = None) -> dict[str, ScreenRecord]:
+                       max_abs_rho: float, priority: dict[str, int] | None = None,
+                       preferred: set[str] | frozenset[str] = frozenset()) -> dict[str, ScreenRecord]:
     """Drop one of each numeric pair whose |Spearman rho| exceeds max_abs_rho.
 
     A fast pass ranks every column (missing filled with the middle rank) and
@@ -100,6 +110,11 @@ def correlation_screen(sample: pl.DataFrame, features: list[str], missing: dict[
     and a feature that has already caused a drop is not dropped later (the
     other member of the pair goes instead; if both have, both stay), so every
     drop's `correlated_with` names a feature that is in the matrix.
+
+    `preferred` features start as keepers: they are never dropped, only cause
+    drops. The configured ratios are preferred because each one is a reason a
+    lender actually gives ("excessive obligations in relation to income"); a
+    raw amount that ranks the same way is the weaker reason.
     """
     records = {f: ScreenRecord(f) for f in features}
     if len(features) < 2:
@@ -112,7 +127,7 @@ def correlation_screen(sample: pl.DataFrame, features: list[str], missing: dict[
         if abs(corr[i, j]) > max_abs_rho - 0.02
     ]
     dropped: set[str] = set()
-    keepers: set[str] = set()
+    keepers: set[str] = set(preferred) & set(features)
     pri = priority or {}
     # Strongest pairs first; among equally strong ones, pairs involving the most
     # explainable feature first, so a drop always names a feature that is kept.

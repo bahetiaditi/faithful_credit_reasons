@@ -19,9 +19,9 @@ from pathlib import Path
 
 import polars as pl
 
-from fcr.config import Config
+from fcr.config import Config, resolve_path
 from fcr.data.aggregate import FeatureSpec, aggregate_chunk
-from fcr.data.dates import DATE_FORMAT, DateRoles, apply_date_rules, attach_decision_dates
+from fcr.data.dates import DATE_FORMAT, DateRoles, apply_date_rules, attach_decision_dates, load_date_roles
 from fcr.data.loader import TableFamily
 
 TAX_FAMILY = "tax_registry_1"
@@ -130,3 +130,26 @@ def write_family(result: FamilyResult, out_dir: Path) -> Path:
     path = out_dir / f"{result.key}.parquet"
     result.features.write_parquet(path)
     return path
+
+
+def ensure_features(families, base: pl.DataFrame, cfg, feature_dir: Path, manifest_path: Path,
+                    log=print) -> pl.DataFrame:
+    """C5's feature manifest, reusing an earlier build in this session or rebuilding it.
+
+    Kaggle does not keep /kaggle/working between sessions, so every script that
+    needs the C5 features calls this instead of assuming they exist.
+    """
+    if manifest_path.is_file() and feature_dir.is_dir() and any(feature_dir.glob("*.parquet")):
+        log(f"reusing C5 features at {feature_dir}")
+        return pl.read_csv(manifest_path)
+    log(f"C5 features not found; rebuilding into {feature_dir}")
+    roles = load_date_roles(resolve_path(cfg.features.date_roles_file))
+    specs = []
+    for result in build_all(families, base, cfg, roles):
+        write_family(result, feature_dir)
+        specs += [s.as_dict() for s in result.specs]
+        log(f"  built {result.key} ({len(result.specs)} features)")
+    manifest = pl.DataFrame(specs)
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_csv(manifest_path)
+    return manifest

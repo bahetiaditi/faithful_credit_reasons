@@ -72,5 +72,46 @@ mkdir -p results/cNN
 unzip -o ~/Downloads/cNN_results.zip -d results/cNN
 ```
 
-Only aggregates (counts, shares, column names, figures) are written there;
-applicant-level data never leaves Kaggle.
+Only aggregates (counts, shares, column names, figures) are written there.
+The one exception is the 50k-case sample from C7 (next section), which goes into
+`data/` for local development and is never committed; `data/*` is gitignored.
+
+## The feature dataset (C7 onwards)
+
+From C8 on, notebooks read the feature table from a private Kaggle Dataset
+instead of rebuilding it from the raw competition files (about 6 minutes and
+16 GB each time). C7 builds it once:
+
+1. End the driver cell with two lines instead of one:
+
+   ```python
+   !python /tmp/fcr/scripts/smoke_c05.py
+   !python /tmp/fcr/scripts/smoke_c07.py --clean-working
+   ```
+
+   C5 runs in its own process first, so its memory (peak 18 GB) is released
+   before screening starts (peak 16 GB) on Kaggle's 31 GB. `--clean-working`
+   then deletes the C5 intermediates, so the output holds only
+   `fcr_features/` and two zips.
+2. **Save Version → Save & Run All (Commit).** An interactive session's files
+   cannot become a Dataset; a saved version's output can. The run takes about
+   10 minutes (install, tests, C5 rebuild, screening, writing).
+3. Open the saved version, go to **Output**, and download `c07_results.zip`
+   (aggregates) and `fcr_sample.zip` (the 50k sample).
+4. On the same Output page choose **New Dataset**, name it `fcr-features`,
+   keep it **Private**. A later rebuild becomes a new version of this Dataset.
+5. In later notebooks: **Add Input → Your Datasets → fcr-features**.
+   `fcr.data.dataset.locate_feature_dataset` finds it wherever Kaggle mounts it,
+   by the name inside its `dataset_manifest.json`.
+
+Every load re-checks the files' hashes against the manifest, the feature
+columns against its feature list, and the split against
+`configs/split_lock.json`, so a model cannot train on a table that changed.
+
+On the Mac, install the sample and commit the lock:
+
+```bash
+unzip -o -j ~/Downloads/c07_results.zip split_lock.json -d configs
+python scripts/smoke_c07.py --local --bundle ~/Downloads/fcr_sample.zip
+python -m pytest -q
+```

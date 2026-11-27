@@ -34,6 +34,7 @@ class PathsConfig(_Strict):
     local_data_dir: Path
     results_dir: Path
     kaggle_competition_dir: Path
+    feature_dataset_name: str = Field(default="fcr-features", pattern=r"^[a-z0-9][a-z0-9-]{4,49}$")
 
 
 class DataConfig(_Strict):
@@ -97,7 +98,7 @@ class FeaturesConfig(_Strict):
     applicant_row_families: tuple[str, ...] = ()
     numeric_stats: tuple[Literal["mean", "min", "max", "count", "std", "sum"], ...]
     tax_registries: dict[str, TaxRegistryMap] = Field(default_factory=dict)
-    max_top_share: float = Field(default=0.995, gt=0, le=1)
+    min_minority_rows: int = Field(default=1000, ge=1)
     max_category_levels: int = Field(default=50, ge=2)
     corr_sample_cases: int = Field(default=200_000, gt=1000)
     ratios: tuple[RatioSpec, ...] = ()
