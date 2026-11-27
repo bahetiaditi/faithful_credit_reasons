@@ -147,6 +147,15 @@ def test_every_protected_column_exists_in_the_real_schema(repo_root, c04):
     assert not missing, f"configured protected columns not in the data: {sorted(missing)}"
 
 
+def test_every_proxy_and_ratio_column_exists_in_the_real_schema(repo_root, c04):
+    cfg = load_config(repo_root / "configs" / "config.yaml")
+    _, columns = c04
+    missing = set(cfg.protected.proxy_columns) - columns
+    assert not missing, f"configured proxy columns not in the data: {sorted(missing)}"
+    inputs = {c.removesuffix("__applicant") for r in cfg.features.ratios for c in (r.numerator, r.denominator)}
+    assert not inputs - columns, f"ratio inputs not in the data: {sorted(inputs - columns)}"
+
+
 def test_every_column_the_inventory_flagged_has_a_decision(repo_root, c04):
     """A new EDA run that flags a column nobody has triaged fails here."""
     cfg = load_config(repo_root / "configs" / "config.yaml").protected

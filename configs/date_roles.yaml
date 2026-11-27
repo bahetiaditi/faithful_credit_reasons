@@ -54,3 +54,11 @@ anchors:
   # tax_registry_a_1 has no anchor: its only date is a retrieval timestamp (above).
   tax_registry_b_1: [deductiondate_4917603D]
   tax_registry_c_1: [processingdate_168D]
+
+# Anchor-drop shares reviewed on the real data. The C5 smoke warns only when a
+# family drops more than max(20%, expected + 5 points).
+anchor_drop_expected:
+  # C5.1: 21.7% of registry c rows are processed after the decision. Its last
+  # month of deductions is recorded up to ~30 days later (lag profile), so the
+  # drop removes the post-decision month, which is what it should do.
+  tax_registry_c_1: 0.22

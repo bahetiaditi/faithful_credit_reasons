@@ -41,6 +41,17 @@ features:                       # Section 5.1
   # C4: the three tax registries are one source with successive providers
   # (c: Jan-Sep 2019, a: Aug 2019-Apr 2020, b: Apr 2020 on). Mapped onto one
   # schema so features describe the applicant, not which provider was active.
+  # C6 screening, all measured on training weeks only so validation and test
+  # never influence which features exist.
+  max_top_share: 0.995            # near-constant: most frequent non-null value above this share
+  max_category_levels: 50         # categories keep their 50 most frequent training levels; the rest -> "__other__"
+  corr_sample_cases: 200000       # training cases sampled for the Spearman screen
+  # Affordability ratios (Section 5.1 step 7), over aggregated feature names.
+  ratios:
+    - {name: annuity_to_income__ratio, numerator: annuity_780A, denominator: mainoccupationinc_384A__applicant}
+    - {name: credit_to_income__ratio, numerator: credamount_770A, denominator: mainoccupationinc_384A__applicant}
+    - {name: debt_to_income__ratio, numerator: totaldebt_9A, denominator: mainoccupationinc_384A__applicant}
+    - {name: annuity_to_credit__ratio, numerator: annuity_780A, denominator: credamount_770A}
   tax_registries:
     tax_registry_a_1: {amount: amount_4527230A, date: recorddate_4527225D, employer: name_4527232M}
     tax_registry_b_1: {amount: amount_4917619A, date: deductiondate_4917603D, employer: name_4917606M}
@@ -68,6 +79,20 @@ protected:                      # Section 4.4: excluded from the model, kept for
   disability_recode_column: incometype_1044T
   disability_income_values: [HANDICAPPED, HANDICAPPED_2, HANDICAPPED_3]
   disability_recode_value: OTHER
+  # Geography is excluded from the model as a proxy for protected attributes
+  # (the redlining risk in lending), decided in C6. Address-match flags and
+  # address roles stay: they describe consistency, not location.
+  proxy_columns:
+    - district_544M               # applprev_1
+    - previouscontdistrict_112M   # static_0
+    - contaddr_district_15M       # person_1
+    - contaddr_zipcode_807M       # person_1
+    - empladdr_district_926M      # person_1
+    - empladdr_zipcode_114M       # person_1
+    - registaddr_district_1083M   # person_1
+    - registaddr_zipcode_184M     # person_1
+    - addres_district_368M        # person_2
+    - addres_zip_823M             # person_2
   # Flagged by the inventory's word match but not a protected attribute.
   reviewed_not_protected:
     - equalitydataagreement_891L  # flags a change in socio-demographic data; matched "family" in its definition

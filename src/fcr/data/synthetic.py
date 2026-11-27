@@ -21,6 +21,9 @@ Version 4 (C5.1) makes registry a's date a retrieval timestamp, as the real
 build showed it to be: 0-14 days after the decision and the same for every
 row of a case. Only registries b and c carry late deduction records.
 
+Version 5 (C6) gives static_0's credit amount and annuity their real names
+(credamount_770A, annuity_780A) so the affordability ratios are exercised.
+
 What it is not: a realistic simulation of credit risk. The target has a known,
 simple dependence on a few latent drivers so that later models can be checked
 for learning *something*; no number measured on these files means anything
@@ -49,7 +52,7 @@ from pathlib import Path
 import numpy as np
 import polars as pl
 
-GENERATOR_VERSION = 4
+GENERATOR_VERSION = 5
 
 # Real column names, taken from the public ETL write-up cited in REFERENCE.md
 # Section 4. Everything else is invented and marked [synthetic] in the
@@ -213,8 +216,8 @@ def generate_synthetic_dataset(root: str | Path, spec: SyntheticSpec | None = No
     static0 = pl.DataFrame(
         {
             "case_id": case_id,
-            "syn_credamount_1001A": credit_amount,
-            "syn_annuity_1002A": np.round(credit_amount * debt_ratio / 12 + 100, 2),
+            "credamount_770A": credit_amount,
+            "annuity_780A": np.round(credit_amount * debt_ratio / 12 + 100, 2),
             "syn_applicationcnt_1003L": rng.poisson(1.5, size=n).astype(np.int64),
             "syn_clienttype_1004M": rng.choice(_CLIENT_TYPE_HASHES, size=n, p=(0.6, 0.3, 0.1)),
         }
@@ -222,8 +225,8 @@ def generate_synthetic_dataset(root: str | Path, spec: SyntheticSpec | None = No
     for stem in _write_chunks(static0, train_dir, "static", 0, 2):
         record(stem, pl.read_parquet(train_dir / f"{stem}.parquet"))
     definitions |= {
-        "syn_credamount_1001A": "[synthetic] Credit amount applied for.",
-        "syn_annuity_1002A": "[synthetic] Monthly instalment of the applied loan.",
+        "credamount_770A": "Loan amount or card limit.",
+        "annuity_780A": "Monthly annuity amount.",
         "syn_applicationcnt_1003L": "[synthetic] Number of applications in the last year.",
         "syn_clienttype_1004M": "[synthetic] Client type (masked).",
     }

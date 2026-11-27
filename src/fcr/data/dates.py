@@ -48,6 +48,8 @@ class DateRoles(BaseModel):
     scheduled: tuple[str, ...] = ()
     retrieval: tuple[str, ...] = ()
     anchors: dict[str, tuple[str, ...]] = {}
+    # Reviewed anchor-drop shares: the C5 smoke warns only above max(0.20, this + 0.05).
+    anchor_drop_expected: dict[str, float] = {}
 
     @model_validator(mode="after")
     def _roles_are_disjoint(self) -> DateRoles:
@@ -57,7 +59,16 @@ class DateRoles(BaseModel):
                               ("anchor and scheduled", anchors & set(self.scheduled))):
             if overlap:
                 raise ValueError(f"columns cannot be both {name}: {sorted(overlap)}")
+        unknown = set(self.anchor_drop_expected) - set(self.anchors)
+        if unknown:
+            raise ValueError(f"anchor_drop_expected for families without an anchor: {sorted(unknown)}")
+        if any(not 0.0 <= v < 1.0 for v in self.anchor_drop_expected.values()):
+            raise ValueError("anchor_drop_expected shares must be in [0, 1)")
         return self
+
+    def anchor_drop_limit(self, family: str, default: float = 0.20) -> float:
+        expected = self.anchor_drop_expected.get(family)
+        return default if expected is None else max(default, expected + 0.05)
 
     def is_scheduled(self, column: str) -> bool:
         return column in self.scheduled

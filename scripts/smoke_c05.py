@@ -159,10 +159,11 @@ def main() -> int:
         if not anchors:
             continue
         share = src["rows_dropped_by_anchor"] / src["rows_in"] if src["rows_in"] else 0.0
-        flag = "  WARN" if share > ANCHOR_DROP_WARN else ""
+        limit = roles.anchor_drop_limit(family, ANCHOR_DROP_WARN)
+        flag = "  WARN" if share > limit else ("  (expected)" if family in roles.anchor_drop_expected else "")
         print(f"  {family:<20} {', '.join(anchors):<48} dropped {src['rows_dropped_by_anchor']:>10,} of {src['rows_in']:>11,} ({share:.1%}){flag}")
-        if share > ANCHOR_DROP_WARN:
-            warnings.append(f"{family}: anchor dropped {share:.0%} of rows")
+        if share > limit:
+            warnings.append(f"{family}: anchor dropped {share:.0%} of rows (limit {limit:.0%})")
     dates = pl.DataFrame(date_rows) if date_rows else pl.DataFrame()
     dates.write_csv(out / "date_diagnostics.csv")
     total_features = sum(s["features"] for s in summary.values())

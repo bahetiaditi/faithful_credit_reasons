@@ -76,6 +76,12 @@ class SplitConfig(_Strict):
         raise ValueError(f"week {week} is outside every split")
 
 
+class RatioSpec(_Strict):
+    name: str
+    numerator: str
+    denominator: str
+
+
 class TaxRegistryMap(_Strict):
     amount: str
     date: str
@@ -91,6 +97,10 @@ class FeaturesConfig(_Strict):
     applicant_row_families: tuple[str, ...] = ()
     numeric_stats: tuple[Literal["mean", "min", "max", "count", "std", "sum"], ...]
     tax_registries: dict[str, TaxRegistryMap] = Field(default_factory=dict)
+    max_top_share: float = Field(default=0.995, gt=0, le=1)
+    max_category_levels: int = Field(default=50, ge=2)
+    corr_sample_cases: int = Field(default=200_000, gt=1000)
+    ratios: tuple[RatioSpec, ...] = ()
 
     @field_validator("tax_registries")
     @classmethod
@@ -107,11 +117,20 @@ class ProtectedConfig(_Strict):
     disability_income_values: tuple[str, ...]
     disability_recode_value: str
     reviewed_not_protected: tuple[str, ...] = ()
+    proxy_columns: tuple[str, ...] = ()
+
+    def excluded(self) -> set[str]:
+        """Source columns that never enter the model matrix."""
+        return set(self.columns) | set(self.proxy_columns)
 
     @model_validator(mode="after")
     def _lists_are_consistent(self) -> ProtectedConfig:
         if len(set(self.columns)) != len(self.columns):
             raise ValueError("protected.columns has duplicates")
+        if set(self.columns) & set(self.proxy_columns):
+            raise ValueError("a column is listed both as protected and as a proxy")
+        if self.disability_recode_column in self.proxy_columns:
+            raise ValueError("the recode column is kept as a feature, so it cannot be a proxy")
         if self.disability_recode_column in self.columns:
             raise ValueError("the recode column is kept as a feature, so it cannot also be excluded")
         overlap = set(self.columns) & set(self.reviewed_not_protected)

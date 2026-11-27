@@ -145,3 +145,12 @@ def test_a_column_has_exactly_one_role(update):
     data.update(update)
     with pytest.raises(ValueError, match="cannot be both"):
         DateRoles.model_validate(data)
+
+
+def test_anchor_drop_expectations_raise_the_warning_limit_only_where_reviewed():
+    roles = DateRoles(sentinels={"before": "1901-01-01", "after": "2090-01-01"},
+                      anchors={"t_1": ("d_1D",), "u_1": ("e_1D",)}, anchor_drop_expected={"t_1": 0.22})
+    assert roles.anchor_drop_limit("t_1") == pytest.approx(0.27)
+    assert roles.anchor_drop_limit("u_1") == pytest.approx(0.20)
+    with pytest.raises(ValueError, match="without an anchor"):
+        DateRoles(sentinels={"before": "1901-01-01", "after": "2090-01-01"}, anchor_drop_expected={"x_1": 0.1})
