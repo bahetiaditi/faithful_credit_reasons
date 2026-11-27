@@ -1,6 +1,6 @@
 # REFERENCE — Faithful Credit Reasons
 
-Exported from the live reference doc; regenerate this file whenever the doc changes. Last export: 2026-11-27 (C5).
+Exported from the live reference doc; regenerate this file whenever the doc changes. Last export: 2026-11-27 (C5.1).
 
 ## 0. How to use this document
 
@@ -223,9 +223,9 @@ For scale: one public student project reported test ROC-AUC of about 0.78 with L
 ### 5.1 Feature engineering
 
 1. **Concatenate and aggregate per chunk.** Chunk files of a family are concatenated lazily; heavy families are aggregated one chunk at a time, which is exact because no case spans two chunks (C4).
-2. **Clean first.** Read `a55475b1` as null in masked columns, treat sentinel dates (1900-01-xx, 2098-01-15, once C5 confirms them) as missing, and recode disability-coded income types.
-3. **Leakage control.** Classify each date column as an event date (approval, creation, activation, payment) or a scheduled date (contract end, maturity). Convert every date to days relative to `date_decision`, and drop records whose event date falls after their own case's `date_decision`. A unit test asserts no feature uses information from after `date_decision`.
-4. **Harmonise the tax registries.** Map registries a, b and c onto one schema (amount, date, employer) before aggregating, so the features describe the applicant rather than which provider was active (Section 4.7).
+2. **Clean first.** Read `a55475b1` as null in masked columns and treat sentinel dates (before 1901, or 2090 and later) as missing. C5 found 950 sentinel values in bureau contract dates and 3 in a birth date. Disability-coded income types are recoded in C6.
+3. **Leakage control by date role** (`configs/date_roles.yaml`). Every date column has exactly one role. *Event* dates (the default) record something that already happened; a value after the case's own `date_decision` is set to null. *Scheduled* dates (contract end, maturity, first due date) may lie in the future and are kept. *Retrieval* timestamps record when the lender pulled data from a provider while processing the application, typically days after `date_decision`; they are dropped and never used. *Anchors* date a record's creation; a record whose anchor is after `date_decision` is dropped whole. Every date becomes days before `date_decision`. A test, and the real-data smoke run, assert that no event-date feature is negative. The retrieval role was added in C5.1, after the first real build showed bureau response dates almost entirely after the decision and an anchor on such a timestamp dropping half the tax registry.
+4. **Harmonise the tax registries.** Clean each provider's table with its own date rules, then map registries a, b and c onto one schema (amount, employer) before aggregating, so the features describe the applicant rather than which provider was active (Section 4.7). The merged schema has no date: registry a's only date is a retrieval timestamp, so a merged date would exist only for b and c and its absence would reveal the period.
 5. **Aggregate depth 1 and 2** to case level. Numeric: count, mean, min, max (no "last" value: what `num_group1`'s order means is not documented); P-suffix (days past due) also gets the count of positive values. Booleans: share true. Categorical: mode and number of distinct non-null values. Every family: rows per case; depth 2 also distinct `num_group1`. `person_1` keeps the applicant's own row (`num_group1` = 0) and counts related persons, rather than averaging the applicant with relatives. Date roles (event, scheduled, anchor) are in `configs/date_roles.yaml`.
 6. **Screen.** Drop columns above a missingness threshold (default 95%), near-constant columns, and one of each pair with |Spearman ρ| > 0.95.
 7. **Ratios.** A small set of affordability ratios built from A-suffix amounts (instalment to income, credit to income), because these are both predictive and explainable.

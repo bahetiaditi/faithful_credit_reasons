@@ -27,7 +27,10 @@ from fcr.data.loader import TableFamily
 TAX_FAMILY = "tax_registry_1"
 # Harmonised tax-registry columns. Derived ids in the 9000xx range follow the
 # suffix convention so the rest of the pipeline treats them like any column.
-TAX_COLUMNS = {"amount": "taxregamount_900001A", "date": "taxregdate_900002D", "employer": "taxregemployer_900003M"}
+# No date: registry a's only date is a retrieval timestamp (C5.1), so a merged
+# date would exist only for b and c, and its absence would reveal the period.
+# Each provider's date is still used for leakage control before merging.
+TAX_COLUMNS = {"amount": "taxregamount_900001A", "employer": "taxregemployer_900003M"}
 
 
 @dataclass
@@ -99,7 +102,6 @@ def build_tax_registry(families: dict[str, TableFamily], cfg: Config, roles: Dat
             frames.append(df.select(
                 "case_id", "num_group1",
                 pl.col(mapping.amount).cast(pl.Float64).alias(TAX_COLUMNS["amount"]),
-                pl.col(mapping.date).alias(TAX_COLUMNS["date"]),
                 pl.col(mapping.employer).alias(TAX_COLUMNS["employer"]),
             ))
     if not frames:

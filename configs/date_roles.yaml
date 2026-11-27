@@ -14,6 +14,13 @@
 #   - Anchors: for a multi-row table, the date the record came into being. A
 #     record whose anchor is after date_decision did not exist yet: the whole
 #     row is dropped. Several anchor columns are coalesced in order.
+#   - Retrieval timestamps record when the lender pulled data from a provider
+#     while processing the application, typically days after date_decision.
+#     They are not events in the applicant's history: they are dropped (never
+#     features, never anchors). Added in C5.1 after the first real build nulled
+#     almost every response date and an anchor on one of them dropped half the
+#     tax registry. Their ids follow the provider relay seen in the tax
+#     registries (1012 / 4527 / 4917).
 #   - Sentinels: dates before `before` or on/after `after` are placeholders,
 #     not dates (C4 saw 1900-01-01, 1900-01-15, 2098-01-15). Set to null first.
 
@@ -29,6 +36,14 @@ scheduled:
   - firstdatedue_489D           # static_0: first instalment due date of the loan
   - firstnonzeroinstldate_307D  # applprev_1: first scheduled non-zero instalment
 
+retrieval:
+  - responsedate_1012D          # static_cb_0: bureau response, provider 1 (C5: 718k of 720k after decision)
+  - responsedate_4527233D       # static_cb_0: bureau response, provider 2 (660k of 660k after)
+  - responsedate_4917613D       # static_cb_0: bureau response, provider 3 (224k of 225k after)
+  - assignmentdate_4527235D     # static_cb_0: provider 2 assignment (115k of 115k after)
+  - refreshdate_3813885D        # credit_bureau_a_1: bureau data refresh (5.7M of 11.1M after)
+  - recorddate_4527225D         # tax_registry_a_1: earliest value is provider 2's first day, so not a deduction history
+
 anchors:
   applprev_1: [creationdate_885D]                            # never null in C4
   credit_bureau_a_1: [dateofcredstart_181D, dateofcredstart_739D]  # two complementary column sets
@@ -36,6 +51,6 @@ anchors:
   credit_bureau_b_2: [pmts_date_1107D]                       # one payment-history row
   debitcard_1: [openingdate_857D]
   deposit_1: [openingdate_313D]
-  tax_registry_a_1: [recorddate_4527225D]
+  # tax_registry_a_1 has no anchor: its only date is a retrieval timestamp (above).
   tax_registry_b_1: [deductiondate_4917603D]
   tax_registry_c_1: [processingdate_168D]

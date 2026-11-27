@@ -9,6 +9,9 @@ results to <out>/ zipped as c05_results.zip:
     feature_manifest.csv     every feature: family, source column, stat, kind, null share
     date_diagnostics.csv     per family x date column: sentinels nulled, future events nulled,
                              future scheduled values kept, records dropped by anchors
+    date_lag_profile.csv     per source table x date column: role, lag-behind-decision buckets,
+                             share constant within a case (C5.1: separates retrieval timestamps
+                             from event histories)
     c05_summary.json         per family: cases, features, rows in/out, seconds
 
 Pass condition (REFERENCE.md C5): every family builds with one row per case, and
@@ -30,13 +33,14 @@ import polars as pl
 
 from fcr.config import load_config, resolve_path
 from fcr.data.build import build_all, write_family
-from fcr.data.dates import load_date_roles
+from fcr.data.dates import LAG_BUCKETS, load_date_roles
 from fcr.data.loader import discover_families, load_base
 from fcr.data.paths import locate_competition_dir
 from fcr.data.synthetic import SyntheticSpec, generate_synthetic_dataset
 from fcr.runinfo import git_commit, peak_rss_gb
 
 EVENT_STATS = ("mean", "min", "max", "applicant", "value")
+ANCHOR_DROP_WARN = 0.20
 
 
 def main() -> int:
@@ -66,6 +70,9 @@ def main() -> int:
     base = load_base(families)
     failures: list[str] = []
     manifest, date_rows, summary = [], [], {}
+    lag = defaultdict(lambda: defaultdict(int))
+    sources = defaultdict(lambda: defaultdict(int))
+    warnings: list[str] = []
 
     print(f"\n  {'family':<20}{'cases':>11}{'feats':>7}{'rows in':>13}{'rows out':>13}{'anchor drop':>12}"
           f"{'fut.null':>10}{'sentinel':>10}{'masked':>11}{'sec':>7}{'peakGB':>8}")
@@ -80,6 +87,13 @@ def main() -> int:
             for kind in ("sentinels_nulled", "future_events_nulled", "scheduled_future_kept", "masked_nulled"):
                 for col, n in d.get(kind, {}).items():
                     totals[kind][col] += n
+        for d in result.diagnostics:
+            src = sources[d["family"]]
+            src["rows_in"] += d["rows_in"]
+            src["rows_dropped_by_anchor"] += d["rows_dropped_by_anchor"]
+            for col, counts in d.get("lag_profile", {}).items():
+                for k, v in counts.items():
+                    lag[(d["family"], col)][k] += v
         for col in sorted(set(totals["sentinels_nulled"]) | set(totals["future_events_nulled"]) | set(totals["scheduled_future_kept"])):
             date_rows.append({
                 "family": result.key, "column": col,
@@ -118,6 +132,37 @@ def main() -> int:
         del result, f
 
     pl.DataFrame(manifest).write_csv(out / "feature_manifest.csv")
+
+    lag_rows = []
+    for (family, col), c in sorted(lag.items()):
+        after = c["non_null"] - c["before"]
+        lag_rows.append({"family": family, "column": col, "role": roles.role(col),
+                         "anchor": col in roles.anchors.get(family, ()), "non_null": c["non_null"],
+                         "share_after": after / c["non_null"] if c["non_null"] else 0.0,
+                         **{name: c[name] for name, *_ in LAG_BUCKETS},
+                         "cases_multi": c.get("cases_multi"), "cases_constant": c.get("cases_constant")})
+    lag_df = pl.DataFrame(lag_rows)
+    lag_df.write_csv(out / "date_lag_profile.csv")
+    print("\n== Date lag profile (columns with >5% of values after the decision)")
+    print(f"  {'table.column':<46}{'role':<10}{'non-null':>11}{'after':>7}  {'1d':>6}{'2-7d':>6}{'8-30d':>6}"
+          f"{'31-90':>6}{'91-365':>7}{'>365':>6}  constant/case")
+    for r in lag_df.filter(pl.col("share_after") > 0.05).sort("share_after", descending=True).iter_rows(named=True):
+        after = r["non_null"] - r["before"]
+        mix = [r[k] / after if after else 0 for k in ("1d", "2-7d", "8-30d", "31-90d", "91-365d", ">365d")]
+        const = f"{r['cases_constant'] / r['cases_multi']:.0%}" if r["cases_multi"] else "-"
+        print(f"  {r['family'] + '.' + r['column']:<46}{r['role']:<10}{r['non_null']:>11,}{r['share_after']:>7.0%}  "
+              + "".join(f"{m:>6.0%}" if i != 4 else f"{m:>7.0%}" for i, m in enumerate(mix)) + f"  {const:>8}")
+
+    print("\n== Anchor drops by source table")
+    for family, src in sorted(sources.items()):
+        anchors = roles.anchors.get(family, ())
+        if not anchors:
+            continue
+        share = src["rows_dropped_by_anchor"] / src["rows_in"] if src["rows_in"] else 0.0
+        flag = "  WARN" if share > ANCHOR_DROP_WARN else ""
+        print(f"  {family:<20} {', '.join(anchors):<48} dropped {src['rows_dropped_by_anchor']:>10,} of {src['rows_in']:>11,} ({share:.1%}){flag}")
+        if share > ANCHOR_DROP_WARN:
+            warnings.append(f"{family}: anchor dropped {share:.0%} of rows")
     dates = pl.DataFrame(date_rows) if date_rows else pl.DataFrame()
     dates.write_csv(out / "date_diagnostics.csv")
     total_features = sum(s["features"] for s in summary.values())
@@ -140,12 +185,13 @@ def main() -> int:
     elapsed = round(time.perf_counter() - started, 1)
     (out / "c05_summary.json").write_text(json.dumps(
         {"commit": git_commit(), "families": summary, "total_features": total_features,
-         "elapsed_s": elapsed, "peak_memory_gb": round(peak_rss_gb(), 2), "failures": failures}, indent=1))
+         "elapsed_s": elapsed, "peak_memory_gb": round(peak_rss_gb(), 2), "failures": failures,
+         "warnings": warnings}, indent=1))
     # Zip only the aggregate files; the feature parquet stays on Kaggle.
     staging = out.parent / "c05_results"
     shutil.rmtree(staging, ignore_errors=True)
     staging.mkdir()
-    for name in ("feature_manifest.csv", "date_diagnostics.csv", "c05_summary.json"):
+    for name in ("feature_manifest.csv", "date_diagnostics.csv", "date_lag_profile.csv", "c05_summary.json"):
         shutil.copy(out / name, staging / name)
     bundle = shutil.make_archive(str(staging), "zip", root_dir=staging)
     shutil.rmtree(staging)
@@ -154,6 +200,8 @@ def main() -> int:
     print(f"elapsed {elapsed}s   peak memory {peak_rss_gb():.2f} GB")
 
     print("\n== Result")
+    for w in warnings:
+        print(f"WARNING: {w}")
     if failures:
         print("SMOKE FAILED:")
         for f in failures:

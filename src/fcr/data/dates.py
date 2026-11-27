@@ -3,7 +3,9 @@
 Applied to one chunk at a time, after the chunk is joined to its cases'
 date_decision. The order matters:
 
-1. sentinel dates become null (they are placeholders, not dates);
+1. sentinel dates become null (they are placeholders, not dates); every
+   date's lag behind the decision is profiled; retrieval timestamps are then
+   dropped (they record when data was pulled, not an applicant event);
 2. records whose anchor date is after date_decision are dropped (the record
    did not exist when the decision was made);
 3. remaining event dates after date_decision become null (future information
@@ -22,10 +24,16 @@ from pathlib import Path
 
 import polars as pl
 import yaml
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 
 DATE_FORMAT = "%Y-%m-%d"
 DECISION = "__decision_date"
+
+# Lag of a date behind its case's decision, in days, as histogram buckets.
+# "before" is on or before the decision; the rest are after it. Counts merge
+# exactly across chunks, unlike quantiles.
+LAG_BUCKETS = (("before", None, 0), ("1d", 1, 1), ("2-7d", 2, 7), ("8-30d", 8, 30),
+               ("31-90d", 31, 90), ("91-365d", 91, 365), (">365d", 366, None))
 
 
 class Sentinels(BaseModel):
@@ -38,10 +46,26 @@ class DateRoles(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     sentinels: Sentinels
     scheduled: tuple[str, ...] = ()
+    retrieval: tuple[str, ...] = ()
     anchors: dict[str, tuple[str, ...]] = {}
+
+    @model_validator(mode="after")
+    def _roles_are_disjoint(self) -> DateRoles:
+        anchors = {c for cols in self.anchors.values() for c in cols}
+        for name, overlap in (("scheduled and retrieval", set(self.scheduled) & set(self.retrieval)),
+                              ("anchor and retrieval", anchors & set(self.retrieval)),
+                              ("anchor and scheduled", anchors & set(self.scheduled))):
+            if overlap:
+                raise ValueError(f"columns cannot be both {name}: {sorted(overlap)}")
+        return self
 
     def is_scheduled(self, column: str) -> bool:
         return column in self.scheduled
+
+    def role(self, column: str) -> str:
+        if column in self.retrieval:
+            return "retrieval"
+        return "scheduled" if column in self.scheduled else "event"
 
 
 def load_date_roles(path: str | Path) -> DateRoles:
@@ -72,7 +96,7 @@ def apply_date_rules(df: pl.DataFrame, family_key: str, roles: DateRoles) -> tup
     if DECISION not in df.columns:
         raise ValueError("attach_decision_dates must run before apply_date_rules")
     diag: dict = {"family": family_key, "rows_in": df.height, "sentinels_nulled": {}, "future_events_nulled": {},
-                  "scheduled_future_kept": {}}
+                  "scheduled_future_kept": {}, "lag_profile": {}}
 
     # 1. parse and null sentinels
     parsed = df.with_columns([_as_date(df, c).alias(c) for c in cols])
@@ -82,6 +106,13 @@ def apply_date_rules(df: pl.DataFrame, family_key: str, roles: DateRoles) -> tup
     parsed = parsed.with_columns(
         [pl.when((pl.col(c) < lo) | (pl.col(c) >= hi)).then(None).otherwise(pl.col(c)).alias(c) for c in cols]
     )
+    diag["lag_profile"] = lag_profile(parsed, cols)
+
+    # 1b. retrieval timestamps are not features
+    retrieval = [c for c in cols if c in roles.retrieval]
+    parsed = parsed.drop(retrieval)
+    diag["retrieval_dropped"] = retrieval
+    cols = [c for c in cols if c not in roles.retrieval]
 
     # 2. drop records created after the decision
     anchors = [c for c in roles.anchors.get(family_key, ()) if c in parsed.columns]
@@ -111,3 +142,38 @@ def apply_date_rules(df: pl.DataFrame, family_key: str, roles: DateRoles) -> tup
     parsed = parsed.with_columns([(pl.col(DECISION) - pl.col(c)).dt.total_days().cast(pl.Int32).alias(c) for c in cols])
     diag["rows_out"] = parsed.height
     return parsed, diag
+
+
+def lag_profile(df: pl.DataFrame, cols: list[str]) -> dict[str, dict[str, int]]:
+    """Per date column: non-null count, lag buckets, and how often it is constant within a case.
+
+    A retrieval timestamp is typically a few days after the decision and the
+    same for every row of a case; an event history is spread out before it.
+    """
+    if not cols:
+        return {}
+    exprs = []
+    for c in cols:
+        lag = (pl.col(c) - pl.col(DECISION)).dt.total_days()
+        exprs.append(pl.col(c).is_not_null().sum().alias(f"{c}|non_null"))
+        for name, lo, hi in LAG_BUCKETS:
+            cond = lag.is_not_null()
+            if lo is not None:
+                cond = cond & (lag >= lo)
+            if hi is not None:
+                cond = cond & (lag <= hi)
+            exprs.append(cond.sum().alias(f"{c}|{name}"))
+    row = df.select(exprs).row(0, named=True)
+    out: dict[str, dict[str, int]] = {}
+    for c in cols:
+        out[c] = {k.split("|", 1)[1]: int(v) for k, v in row.items() if k.startswith(f"{c}|")}
+    if "num_group1" in df.columns:
+        per_case = df.group_by("case_id").agg(
+            [pl.col(c).drop_nulls().n_unique().alias(f"{c}|u") for c in cols]
+            + [pl.col(c).count().alias(f"{c}|n") for c in cols]
+        )
+        for c in cols:
+            multi = per_case.filter(pl.col(f"{c}|n") >= 2)
+            out[c]["cases_multi"] = multi.height
+            out[c]["cases_constant"] = int((multi[f"{c}|u"] == 1).sum())
+    return out

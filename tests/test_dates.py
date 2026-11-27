@@ -103,9 +103,45 @@ def test_repo_date_roles_name_real_date_columns(repo_root):
     families = json.loads(C4_REGISTRY.read_text())["families"]
     date_cols = {c["name"] for f in families.values() for c in f["columns"] if c["name"].endswith("D")}
     assert set(roles.scheduled) <= date_cols
+    assert set(roles.retrieval) <= date_cols
     for family, anchors in roles.anchors.items():
         family_cols = {c["name"] for c in families[family]["columns"]}
         assert set(anchors) <= family_cols, family
         assert all(a.endswith("D") for a in anchors)
     assert not set(roles.scheduled) & {a for anchors in roles.anchors.values() for a in anchors}, \
         "an anchor is when a record began, so it cannot be a scheduled date"
+
+
+# --- C5.1: retrieval timestamps and the lag profile -------------------------
+
+
+def test_retrieval_columns_are_profiled_then_dropped():
+    roles = ROLES.model_copy(update={"retrieval": ("pulled_8D",)})
+    df = chunk().with_columns(pl.Series("pulled_8D", ["2020-01-12", "2020-01-12", "2020-01-12", "2020-01-25", "2020-01-25"]))
+    out, diag = apply_date_rules(attach_decision_dates(df, DECISIONS), "t_1", roles)
+    assert "pulled_8D" not in out.columns
+    assert diag["retrieval_dropped"] == ["pulled_8D"]
+    profile = diag["lag_profile"]["pulled_8D"]
+    # case 1: 2 days after its 10 Jan decision (3 rows); case 2: 5 days after its 20 Jan decision (2 rows)
+    assert (profile["non_null"], profile["2-7d"], profile["before"]) == (5, 5, 0)
+    assert (profile["cases_multi"], profile["cases_constant"]) == (2, 2)
+
+
+def test_lag_profile_buckets_event_dates():
+    _, diag = apply_date_rules(attach_decision_dates(chunk(), DECISIONS), "t_1", ROLES)
+    paid = diag["lag_profile"]["paid_2D"]
+    # 01-05 (before), 01-16 (6 days after), 02-01 (22 days after), sentinel (null), 01-19 (before)
+    assert (paid["non_null"], paid["before"], paid["2-7d"], paid["8-30d"]) == (4, 2, 1, 1)
+    assert paid["cases_constant"] == 0
+
+
+@pytest.mark.parametrize("update", [
+    {"retrieval": ("end_3D",)},           # scheduled and retrieval
+    {"retrieval": ("created_1D",)},       # anchor and retrieval
+    {"scheduled": ("end_3D", "created_1D")},  # anchor and scheduled
+])
+def test_a_column_has_exactly_one_role(update):
+    data = ROLES.model_dump()
+    data.update(update)
+    with pytest.raises(ValueError, match="cannot be both"):
+        DateRoles.model_validate(data)

@@ -17,6 +17,10 @@ after the decision), and the three tax registries under their real column
 names, each covering a successive period as in the real data, with a few
 records dated after the decision.
 
+Version 4 (C5.1) makes registry a's date a retrieval timestamp, as the real
+build showed it to be: 0-14 days after the decision and the same for every
+row of a case. Only registries b and c carry late deduction records.
+
 What it is not: a realistic simulation of credit risk. The target has a known,
 simple dependence on a few latent drivers so that later models can be checked
 for learning *something*; no number measured on these files means anything
@@ -45,7 +49,7 @@ from pathlib import Path
 import numpy as np
 import polars as pl
 
-GENERATOR_VERSION = 3
+GENERATOR_VERSION = 4
 
 # Real column names, taken from the public ETL write-up cited in REFERENCE.md
 # Section 4. Everything else is invented and marked [synthetic] in the
@@ -385,9 +389,14 @@ def generate_synthetic_dataset(root: str | Path, spec: SyntheticSpec | None = No
                 for g in range(int(rng.integers(0, 4)))]
         owner = np.array([r[0] for r in rows], dtype=np.int64)
         nt = len(rows)
-        late = rng.random(nt) < 0.03
-        tax_leak_rows += int(late.sum())
-        offsets_t = np.where(late, -rng.integers(1, 15, size=nt), rng.integers(30, 400, size=nt))
+        if stem == "tax_registry_a_1":
+            # Retrieval timestamp: one value per case, shortly after the decision.
+            per_case = {cid: int(rng.integers(0, 15)) for cid in {r[1] for r in rows}}
+            offsets_t = np.array([-per_case[r[1]] for r in rows], dtype=np.int64)
+        else:
+            late = rng.random(nt) < 0.03
+            tax_leak_rows += int(late.sum())
+            offsets_t = np.where(late, -rng.integers(1, 15, size=nt), rng.integers(30, 400, size=nt))
         tax = pl.DataFrame(
             {
                 "case_id": np.array([r[1] for r in rows], dtype=np.int64),

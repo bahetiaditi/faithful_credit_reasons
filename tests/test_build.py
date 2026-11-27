@@ -94,3 +94,19 @@ def test_a_case_split_across_chunks_is_refused(tmp_path, setup):
     families = discover_families(tmp_path)
     with pytest.raises(ValueError, match="more than one chunk"):
         build_family(families["t_1"], cfg, roles, decision_dates(load_base(families)))
+
+
+def test_retrieval_timestamps_never_become_features(setup):
+    _, roles, *_, results = setup
+    sources = {s.source for r in results.values() for s in r.specs}
+    assert not sources & set(roles.retrieval)
+
+
+def test_registry_a_keeps_every_row_because_it_has_no_anchor(setup):
+    cfg, roles, families, _, results = setup
+    assert "tax_registry_a_1" not in roles.anchors
+    diags = [d for d in results[TAX_FAMILY].diagnostics if d["family"] == "tax_registry_a_1"]
+    assert diags and all(d["rows_dropped_by_anchor"] == 0 for d in diags)
+    profile = diags[0]["lag_profile"]["recorddate_4527225D"]
+    assert profile["before"] < profile["non_null"], "retrieval dates fall after the decision"
+    assert profile["cases_constant"] == profile["cases_multi"], "one retrieval date per case"
