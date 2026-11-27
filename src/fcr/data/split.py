@@ -128,10 +128,15 @@ def stratified_sample(df: pl.DataFrame, n: int, seed: int, by: tuple[str, ...] =
     if n > df.height:
         raise ValueError(f"cannot sample {n:,} rows from {df.height:,}")
     sizes = df.group_by(by).len().sort(list(by))
-    quota = sizes["len"].to_numpy() * n / df.height
+    # float64 before multiplying: polars counts are UInt32, and under NumPy 2's
+    # promotion rules count * n stays UInt32 and wraps (C7: 1,239,558 x 50,000
+    # overflowed and the sample came out at 4,989 cases instead of 50,000).
+    quota = sizes["len"].to_numpy().astype(np.float64) * n / df.height
     take = np.floor(quota).astype(int)
     for i in np.argsort(-(quota - take), kind="stable")[: n - take.sum()]:
         take[i] += 1
+    if take.sum() != n or (take > sizes["len"].to_numpy()).any():
+        raise AssertionError(f"sample allocation is wrong: {take.tolist()} for n={n}")
     alloc = sizes.with_columns(pl.Series("take", take))
     rng = np.random.default_rng(seed)
     return (

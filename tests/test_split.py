@@ -105,3 +105,12 @@ def test_committed_lock_matches_the_config(repo_root, cfg):
         assert lock["splits"][name]["weeks"] == list(getattr(cfg.split, f"{name}_weeks"))
     sizes = {n: (lock["splits"][n]["cases"], lock["splits"][n]["defaults"]) for n in SPLITS}
     assert sizes == {"train": (1_282_082, 42_524), "validation": (92_870, 2_255), "test": (151_707, 3_215)}
+
+
+def test_stratified_sample_survives_counts_that_overflow_uint32():
+    """C7 regression: 100k rows x n=60k overflows UInt32 (6e9 > 4.3e9) unless cast first."""
+    df = pl.DataFrame({"case_id": range(100_000), "split": ["train"] * 100_000,
+                       "target": [int(i % 33 == 0) for i in range(100_000)]})
+    s = stratified_sample(df, 60_000, seed=1)
+    assert s.height == 60_000
+    assert abs(s["target"].mean() - df["target"].mean()) < 1 / 60_000 + 1e-9
