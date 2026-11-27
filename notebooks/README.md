@@ -17,23 +17,42 @@ phase finishes.
 
 ```python
 REPO = "https://github.com/bahetiaditi/faithful_credit_reasons.git"
-SHA = "PASTE_COMMIT_SHA"   # git rev-parse --short HEAD, after pushing
+SHA = "PASTE_COMMIT_SHA"
 
 !rm -rf /tmp/fcr && git clone -q {REPO} /tmp/fcr && git -C /tmp/fcr checkout -q {SHA}
-!pip install -q -e /tmp/fcr
-!python /tmp/fcr/scripts/smoke_c01.py
+!pip install -q -r /tmp/fcr/requirements.txt
+!pip install -q -e /tmp/fcr --no-deps
+!cd /tmp/fcr && python -m pytest -q
+!python /tmp/fcr/scripts/smoke_cNN.py
 ```
 
-Why clone and install in editable mode, rather than `pip install git+...`:
-a plain pip install copies only the Python package, so `configs/` and
-`scripts/` would be missing. The clone keeps the whole repo, and the editable
-install lets the config loader find `configs/config.yaml` from the package
-location.
+`SHA` is the output of `git rev-parse --short HEAD` after pushing. Replace
+`smoke_cNN.py` with the commit's own smoke script. Keep each notebook cell to
+exactly these lines; pasting a new cell onto the end of an old one joins the
+last line of one to the first of the next.
 
-Why `pyproject.toml` has only lower bounds: Kaggle preinstalls numpy, pandas,
-scikit-learn, LightGBM and others. Exact pins would make pip replace them.
-Lower bounds let pip keep Kaggle's versions and install only what is missing.
-Each smoke run prints the versions it actually used.
+**Why install the pinned lock on Kaggle.** In C1 a loose install kept Kaggle's
+own versions (polars 1.35 against 2.2 locally, pandas 2.3 against 3.1), so code
+tested on the Mac would have run on different libraries on Kaggle. Installing
+`requirements.txt` gives both machines identical versions, and running pytest
+on Kaggle confirms it. The lock installs and passes on Kaggle's Python 3.13.
+
+**Expected noise.** pip prints dependency-conflict errors for Kaggle packages
+this project never imports (ydata-profiling, google-colab, torch, gradio and
+others), and pandas may warn about Kaggle's older `bottleneck`. Neither affects
+this project; what matters is that pytest passes and the smoke run ends
+`SMOKE PASSED`.
+
+**Why clone instead of `pip install git+...`.** A plain pip install copies
+only the Python package, so `configs/` and `scripts/` would be missing. The
+editable install also lets the config loader find `configs/config.yaml` from
+the package location.
+
+**Where the data is.** Kaggle mounts the competition at
+`/kaggle/input/competitions/home-credit-credit-risk-model-stability`.
+`fcr.data.paths.locate_competition_dir` also checks older layouts, and the
+smoke output warns if the data turns up somewhere other than the configured
+path.
 
 Scripts run with `!python` start a fresh process, so the new install is
 visible immediately. To `import fcr` inside the notebook's own kernel, add

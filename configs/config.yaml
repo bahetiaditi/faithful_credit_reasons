@@ -9,8 +9,9 @@ paths:
   # Local working data (gitignored). Holds the 50k-case sample from C7.
   local_data_dir: data
   results_dir: results
-  # Where the competition files appear when the dataset is attached on Kaggle.
-  kaggle_competition_dir: /kaggle/input/home-credit-credit-risk-model-stability
+  # Where Kaggle mounts the competition (observed Nov 2026); fcr.data.paths falls
+  # back to other known layouts if this ever changes.
+  kaggle_competition_dir: /kaggle/input/competitions/home-credit-credit-risk-model-stability
 
 data:
   competition_slug: home-credit-credit-risk-model-stability

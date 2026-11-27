@@ -128,17 +128,21 @@ def main() -> int:
         _section("Kaggle")
         usage = shutil.disk_usage("/kaggle/working")
         print(f"/kaggle/working free {usage.free / 1024**3:.1f} GB of {usage.total / 1024**3:.1f} GB")
-        comp = cfg.paths.kaggle_competition_dir
-        if comp.is_dir():
+        from fcr.data.paths import locate_competition_dir
+
+        comp = locate_competition_dir(cfg)
+        if comp is None:
+            print(f"competition data NOT attached (expected at {cfg.paths.kaggle_competition_dir}); needed from C3")
+        else:
+            if comp != cfg.paths.kaggle_competition_dir:
+                print(f"WARNING: data found at {comp}, not the configured path; update configs/config.yaml")
             files = [p for p in comp.rglob("*") if p.is_file()]
             size_gb = sum(p.stat().st_size for p in files) / 1024**3
-            parquet = sorted(p.stem for p in comp.rglob("parquet_files/train/*.parquet"))
-            print(f"competition data attached: {len(files)} files, {size_gb:.1f} GB")
-            print(f"train parquet tables: {len(parquet)}")
-            for stem in parquet:
-                print(f"  {stem}")
-        else:
-            print(f"competition data NOT attached (expected at {comp}); needed from C3")
+            parquet = sorted(p for p in comp.glob("parquet_files/train/*.parquet"))
+            print(f"competition data at {comp}: {len(files)} files, {size_gb:.1f} GB")
+            print(f"train parquet files: {len(parquet)}")
+            for path in parquet:
+                print(f"  {path.stem:<28} {path.stat().st_size / 1024**2:>8.1f} MB")
 
     _section("Result")
     if failures:

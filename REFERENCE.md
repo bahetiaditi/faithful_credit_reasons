@@ -1,6 +1,6 @@
 # REFERENCE — Faithful Credit Reasons
 
-Exported from the live reference doc; regenerate this file whenever the doc changes. Last export: 2026-11-27 (C1).
+Exported from the live reference doc; regenerate this file whenever the doc changes. Last export: 2026-11-27 (C1.1).
 
 ## 0. How to use this document
 
@@ -23,7 +23,7 @@ Why not run everything in notebooks and upload at the end:
 How the two halves connect:
 
 1. Every commit is a logical unit with `pytest` passing on your MacBook. Tests use **synthetic fixtures generated in code** that mimic the competition schema, so a clean clone tests without the data.
-2. Data-heavy smoke runs happen on Kaggle. A driver notebook clones the repo, checks out the pinned commit, runs `pip install -e`, executes `scripts/smoke_cNN.py`, and you paste the output back (exact cell in `notebooks/README.md`). Pinning the SHA makes every Kaggle run traceable to a commit. A plain `pip install git+…` was the first plan, but it copies only the package, so `configs/` and `scripts/` would be missing. Kaggle notebooks need **Internet: On** in settings, which requires a phone-verified account.
+2. Data-heavy smoke runs happen on Kaggle. A driver notebook clones the repo, checks out the pinned commit, installs the pinned lock (requirements.txt, so Kaggle runs the same versions as the Mac), then runs `pip install -e`, executes `scripts/smoke_cNN.py`, and you paste the output back (exact cell in `notebooks/README.md`). Pinning the SHA makes every Kaggle run traceable to a commit. A plain `pip install git+…` was the first plan, but it copies only the package, so `configs/` and `scripts/` would be missing. Kaggle notebooks need **Internet: On** in settings, which requires a phone-verified account.
 3. Heavy artifacts (feature parquet, trained models, attribution tables) are saved as **private Kaggle Datasets**, versioned, and attached to later notebooks. Only small derived results (metrics JSON, figures, tables) go into git.
 4. For local iteration, a Kaggle script exports a **stratified sample of about 50k cases** as parquet that you download into a gitignored `data/` folder.
 5. Raw competition data never enters git. Competition data is typically licensed for competition use; check the rules page before publishing any derived dataset.
@@ -404,7 +404,7 @@ Local development uses Python 3.12; the package floor is 3.11 because the Kaggle
 
 ### 8.2 Compute budget
 
-- **Kaggle sessions** are capped at 12 hours, and `/kaggle/working` persists about 20 GB ([summary of Kaggle's notebook docs](https://huggingface.co/datasets/John6666/forum2/blame/main/kaggle_dead_kernel_error.md)). Reported RAM for CPU sessions varies by source, so read the actual figure from the session's resource panel in C3 and record it here. Every heavy job writes checkpoints and is resumable.
+- **Kaggle sessions** are capped at 12 hours, and `/kaggle/working` persists about 20 GB ([summary of Kaggle's notebook docs](https://huggingface.co/datasets/John6666/forum2/blame/main/kaggle_dead_kernel_error.md)). Measured in C1 (27 Nov 2026): a Kaggle CPU session has Python 3.13.18, 4 cores, 31.3 GB RAM and 19.5 GB free in /kaggle/working. The MacBook Air has 8 cores and 8 GB RAM, so local work stays on the 50k-case sample. Every heavy job writes checkpoints and is resumable.
 - **Feature build** is the heaviest step: run once per feature-set version and saved as a versioned private Kaggle Dataset.
 - **Training** LightGBM on about 1 million training rows with a few hundred features is a CPU job of minutes to tens of minutes per fit; the Optuna budget is set so tuning fits comfortably in one session.
 - **LLM calls** (about 3,000–3,600 in total, Section 7.1) are spread across days, cached by prompt hash, and resumable, exactly as in Project 2.
@@ -628,4 +628,5 @@ Draft now, fill numbers only when measured. **Every bracketed placeholder is cur
 
 | Date | Commit | What happened |
 | --- | --- | --- |
-| 2026-11-27 | C1 | Built and tested in a clean Python 3.12 venv (pinned lock, 94 packages) and a 3.11 venv with lower-bound deps: 65 tests pass, smoke passes. Added `fcr.data.naming` (file and suffix conventions) to C1 so the synthetic fixtures and the C3 loader share one definition. Kaggle install switched from `pip install git+` to clone + `pip install -e`. Awaiting local and Kaggle runs. |
+| 2026-11-27 | C1.1 | Kaggle mounts the competition at `/kaggle/input/competitions/<slug>`, not `/kaggle/input/<slug>`. Config fixed; `fcr.data.paths.locate_competition_dir` falls back to known layouts and the smoke output warns on a mismatch. With the pinned lock, Kaggle (Python 3.13) runs identical versions to the Mac and passes all tests. Kaggle packages we never import report version conflicts; accepted as noise. |
+| 2026-11-27 | C1 | Built in clean Python 3.12 and 3.11 venvs. Mac (3.12.5): 65 tests and smoke pass. Kaggle (3.13.18): smoke passes at 12452a3. Added `fcr.data.naming` early so fixtures and the C3 loader share one definition. Kaggle install changed to clone + `pip install -e`. Finding: a loose install left Kaggle on different major versions (polars 1.35 vs 2.2, pandas 2.3 vs 3.1) and broke some preinstalled cvxpy solvers, so Kaggle now installs the pinned lock. |
