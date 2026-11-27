@@ -1,0 +1,41 @@
+# How each date column is treated before aggregation (REFERENCE.md 5.1 step 3).
+# Decided in C5 from column names and the ranges C4 measured
+# (results/c04/date_checks.csv); a test checks every column named here exists
+# as a date column in results/c04/schema_registry.json.
+#
+# Rules
+#   - Every date becomes "days before the case's date_decision" (negative =
+#     after the decision).
+#   - Event dates (the default) record something that already happened. A value
+#     after the case's own date_decision is information from the future: it is
+#     set to null.
+#   - Scheduled dates are planned dates (contract end, maturity, first due
+#     date). They may legitimately lie after the decision and are kept.
+#   - Anchors: for a multi-row table, the date the record came into being. A
+#     record whose anchor is after date_decision did not exist yet: the whole
+#     row is dropped. Several anchor columns are coalesced in order.
+#   - Sentinels: dates before `before` or on/after `after` are placeholders,
+#     not dates (C4 saw 1900-01-01, 1900-01-15, 2098-01-15). Set to null first.
+
+sentinels:
+  before: "1901-01-01"
+  after: "2090-01-01"
+
+scheduled:
+  - dateofcredend_289D          # credit_bureau_a_1: planned contract end (to 2098)
+  - dateofcredend_353D          # credit_bureau_a_1: planned contract end
+  - contractmaturitydate_151D   # credit_bureau_b_1: maturity (to 2045)
+  - contractenddate_991D        # deposit_1: deposit contract end
+  - firstdatedue_489D           # static_0: first instalment due date of the loan
+  - firstnonzeroinstldate_307D  # applprev_1: first scheduled non-zero instalment
+
+anchors:
+  applprev_1: [creationdate_885D]                            # never null in C4
+  credit_bureau_a_1: [dateofcredstart_181D, dateofcredstart_739D]  # two complementary column sets
+  credit_bureau_b_1: [contractdate_551D]
+  credit_bureau_b_2: [pmts_date_1107D]                       # one payment-history row
+  debitcard_1: [openingdate_857D]
+  deposit_1: [openingdate_313D]
+  tax_registry_a_1: [recorddate_4527225D]
+  tax_registry_b_1: [deductiondate_4917603D]
+  tax_registry_c_1: [processingdate_168D]

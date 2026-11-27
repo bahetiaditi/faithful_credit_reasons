@@ -1,6 +1,6 @@
 # REFERENCE — Faithful Credit Reasons
 
-Exported from the live reference doc; regenerate this file whenever the doc changes. Last export: 2026-11-27 (C4.1).
+Exported from the live reference doc; regenerate this file whenever the doc changes. Last export: 2026-11-27 (C5).
 
 ## 0. How to use this document
 
@@ -226,7 +226,7 @@ For scale: one public student project reported test ROC-AUC of about 0.78 with L
 2. **Clean first.** Read `a55475b1` as null in masked columns, treat sentinel dates (1900-01-xx, 2098-01-15, once C5 confirms them) as missing, and recode disability-coded income types.
 3. **Leakage control.** Classify each date column as an event date (approval, creation, activation, payment) or a scheduled date (contract end, maturity). Convert every date to days relative to `date_decision`, and drop records whose event date falls after their own case's `date_decision`. A unit test asserts no feature uses information from after `date_decision`.
 4. **Harmonise the tax registries.** Map registries a, b and c onto one schema (amount, date, employer) before aggregating, so the features describe the applicant rather than which provider was active (Section 4.7).
-5. **Aggregate depth 1 and 2** to case level. Numeric: count, mean, max, min, last-by-`num_group1`; P-suffix (days past due): max, count of positive values, and recency of the last positive. Categorical: mode and number of distinct values.
+5. **Aggregate depth 1 and 2** to case level. Numeric: count, mean, min, max (no "last" value: what `num_group1`'s order means is not documented); P-suffix (days past due) also gets the count of positive values. Booleans: share true. Categorical: mode and number of distinct non-null values. Every family: rows per case; depth 2 also distinct `num_group1`. `person_1` keeps the applicant's own row (`num_group1` = 0) and counts related persons, rather than averaging the applicant with relatives. Date roles (event, scheduled, anchor) are in `configs/date_roles.yaml`.
 6. **Screen.** Drop columns above a missingness threshold (default 95%), near-constant columns, and one of each pair with |Spearman ρ| > 0.95.
 7. **Ratios.** A small set of affordability ratios built from A-suffix amounts (instalment to income, credit to income), because these are both predictive and explainable.
 

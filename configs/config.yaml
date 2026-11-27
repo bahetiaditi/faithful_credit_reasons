@@ -31,6 +31,20 @@ features:                       # Section 5.1
   # a55475b1 is the most frequent value in 53 of 63 masked columns (median
   # share 82%), which no real category would be.
   masked_missing_values: [a55475b1]
+  date_roles_file: configs/date_roles.yaml
+  # person_1 holds the applicant (num_group1 == 0) and related persons; the
+  # applicant's row is taken as-is, never averaged with relatives'.
+  applicant_row_families: [person_1]
+  # Per-case statistics for numeric columns of multi-row tables. No "last":
+  # the ordering meaning of num_group1 is not documented.
+  numeric_stats: [mean, min, max, count]
+  # C4: the three tax registries are one source with successive providers
+  # (c: Jan-Sep 2019, a: Aug 2019-Apr 2020, b: Apr 2020 on). Mapped onto one
+  # schema so features describe the applicant, not which provider was active.
+  tax_registries:
+    tax_registry_a_1: {amount: amount_4527230A, date: recorddate_4527225D, employer: name_4527232M}
+    tax_registry_b_1: {amount: amount_4917619A, date: deductiondate_4917603D, employer: name_4917606M}
+    tax_registry_c_1: {amount: pmtamount_36A, date: processingdate_168D, employer: employername_160M}
 
 protected:                      # Section 4.4: excluded from the model, kept for slice analysis only
   # Every column C4's inventory flagged (results/c04/eda_summary.json) is

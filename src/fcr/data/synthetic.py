@@ -11,6 +11,12 @@ missing categories are nulls, not empty strings (the real parquet has none),
 and chunk files split at case boundaries, so no case spans two chunks (true of
 every real chunked family, and what makes per-chunk aggregation exact).
 
+Version 3 (C5) adds what the feature build needs to be tested against: a
+creation date on previous applications (the anchor that drops records created
+after the decision), and the three tax registries under their real column
+names, each covering a successive period as in the real data, with a few
+records dated after the decision.
+
 What it is not: a realistic simulation of credit risk. The target has a known,
 simple dependence on a few latent drivers so that later models can be checked
 for learning *something*; no number measured on these files means anything
@@ -39,7 +45,7 @@ from pathlib import Path
 import numpy as np
 import polars as pl
 
-GENERATOR_VERSION = 2
+GENERATOR_VERSION = 3
 
 # Real column names, taken from the public ETL write-up cited in REFERENCE.md
 # Section 4. Everything else is invented and marked [synthetic] in the
@@ -299,6 +305,10 @@ def generate_synthetic_dataset(root: str | Path, spec: SyntheticSpec | None = No
     leak = rng.random(na) < spec.leak_share
     offsets = np.where(leak, rng.integers(1, 200, size=na), -rng.integers(10, 1500, size=na))
     approval = [_iso(decision[o] + timedelta(days=int(off))) for o, off in zip(a_owner, offsets)]
+    # Created up to 30 days before approval, but never on or before the decision
+    # for a leaked record, so the anchor rule drops exactly the leaked rows.
+    gaps = np.where(leak, np.minimum(rng.integers(0, 31, size=na), offsets - 1), rng.integers(0, 31, size=na))
+    creation = [_iso(decision[o] + timedelta(days=int(off - g))) for o, off, g in zip(a_owner, offsets, gaps)]
     prev_dpd = np.where(has_dpd[a_owner] & (rng.random(na) < 0.6), worst_dpd[a_owner], 0)
     applprev = pl.DataFrame(
         {
@@ -307,6 +317,7 @@ def generate_synthetic_dataset(root: str | Path, spec: SyntheticSpec | None = No
             "actualdpd_943P": prev_dpd.astype(np.float64),
             "annuity_853A": np.round(income[a_owner] * rng.uniform(0.02, 0.2, size=na), 2),
             "approvaldate_319D": approval,
+            "creationdate_885D": creation,
             "cancelreason_3545846M": rng.choice(_CANCEL_HASHES, size=na, p=(0.7, 0.2, 0.1)),
             "byoccupationinc_3656910L": np.round(income[a_owner] * rng.uniform(0.8, 1.2, size=na), -2),
         }
@@ -317,6 +328,7 @@ def generate_synthetic_dataset(root: str | Path, spec: SyntheticSpec | None = No
         "actualdpd_943P": "Days past due of the previous contract (actual).",
         "annuity_853A": "Monthly annuity for previous applications.",
         "approvaldate_319D": "Approval date of the previous application.",
+        "creationdate_885D": "Date when the previous application was created.",
         "cancelreason_3545846M": "Cancellation reason of the previous application (masked).",
         "byoccupationinc_3656910L": "Applicant's income from previous applications.",
     }
@@ -353,27 +365,51 @@ def generate_synthetic_dataset(root: str | Path, spec: SyntheticSpec | None = No
         "syn_pmtsdate_1033D": "[synthetic] Date of the monthly payment record.",
     }
 
-    # ---- tax_registry_a_1: depth 1, one file ----
-    t_rows = [(i, cid, g) for i, cid in enumerate(case_id) for g in range(int(rng.integers(0, 4)))]
-    t_owner = np.array([r[0] for r in t_rows], dtype=np.int64)
-    nt = len(t_rows)
-    tax = pl.DataFrame(
-        {
-            "case_id": np.array([r[1] for r in t_rows], dtype=np.int64),
-            "num_group1": np.array([r[2] for r in t_rows], dtype=np.int64),
-            "syn_taxamount_1041A": np.round(income[t_owner] / 12 * rng.uniform(0.1, 0.3, size=nt), 2),
-            "syn_taxdate_1042D": [
-                _iso(decision[o] - timedelta(days=int(rng.integers(30, 400)))) for o in t_owner
-            ],
-            "syn_employername_1043M": rng.choice(_EMPLOYER_HASHES, size=nt),
-        }
-    )
-    tax.write_parquet(train_dir / "train_tax_registry_a_1.parquet")
-    record("train_tax_registry_a_1", tax)
+    # ---- tax registries: one source, three successive providers (C4) ----
+    # c covers early decisions, a the middle period, b the late period, with
+    # short overlaps; real column names; a few records dated after the decision.
+    periods = {
+        "tax_registry_c_1": (date(2018, 1, 1), date(2019, 9, 30)),
+        "tax_registry_a_1": (date(2019, 8, 15), date(2020, 4, 15)),
+        "tax_registry_b_1": (date(2020, 4, 1), date(2030, 1, 1)),
+    }
+    names = {
+        "tax_registry_a_1": ("amount_4527230A", "recorddate_4527225D", "name_4527232M"),
+        "tax_registry_b_1": ("amount_4917619A", "deductiondate_4917603D", "name_4917606M"),
+        "tax_registry_c_1": ("pmtamount_36A", "processingdate_168D", "employername_160M"),
+    }
+    tax_leak_rows = 0
+    for stem, (lo, hi) in periods.items():
+        amount_col, date_col, employer_col = names[stem]
+        rows = [(i, cid, g) for i, cid in enumerate(case_id) if lo <= decision[i] < hi
+                for g in range(int(rng.integers(0, 4)))]
+        owner = np.array([r[0] for r in rows], dtype=np.int64)
+        nt = len(rows)
+        late = rng.random(nt) < 0.03
+        tax_leak_rows += int(late.sum())
+        offsets_t = np.where(late, -rng.integers(1, 15, size=nt), rng.integers(30, 400, size=nt))
+        tax = pl.DataFrame(
+            {
+                "case_id": np.array([r[1] for r in rows], dtype=np.int64),
+                "num_group1": np.array([r[2] for r in rows], dtype=np.int64),
+                amount_col: np.round(income[owner] / 12 * rng.uniform(0.1, 0.3, size=nt), 2),
+                date_col: [_iso(decision[o] - timedelta(days=int(d))) for o, d in zip(owner, offsets_t)],
+                employer_col: rng.choice(_EMPLOYER_HASHES, size=nt),
+            },
+            schema_overrides={amount_col: pl.Float64, date_col: pl.String, employer_col: pl.String},
+        )
+        tax.write_parquet(train_dir / f"train_{stem}.parquet")
+        record(f"train_{stem}", tax)
     definitions |= {
-        "syn_taxamount_1041A": "[synthetic] Tax deduction amount.",
-        "syn_taxdate_1042D": "[synthetic] Date of the tax deduction.",
-        "syn_employername_1043M": "[synthetic] Employer name (masked).",
+        "amount_4527230A": "Tax deductions amount tracked by the government registry.",
+        "recorddate_4527225D": "Date of tax deduction record.",
+        "name_4527232M": "Name of employer.",
+        "amount_4917619A": "Tax deductions amount tracked by the government registry.",
+        "deductiondate_4917603D": "Tax deduction date.",
+        "name_4917606M": "Name of employer.",
+        "pmtamount_36A": "Tax deductions amount for credit bureau payments.",
+        "processingdate_168D": "Date when the tax deduction is processed.",
+        "employername_160M": "Employer's name.",
     }
 
     # ---- feature definitions and manifest ----
@@ -392,6 +428,7 @@ def generate_synthetic_dataset(root: str | Path, spec: SyntheticSpec | None = No
             "column": "approvaldate_319D",
             "n_rows_after_decision": int(leak.sum()),
         },
+        "tax_rows_after_decision": tax_leak_rows,
     }
     (root / "manifest.json").write_text(json.dumps(manifest, indent=2))
     return SyntheticDataset(root=root, train_dir=train_dir, manifest=manifest)

@@ -76,11 +76,29 @@ class SplitConfig(_Strict):
         raise ValueError(f"week {week} is outside every split")
 
 
+class TaxRegistryMap(_Strict):
+    amount: str
+    date: str
+    employer: str
+
+
 class FeaturesConfig(_Strict):
     max_missing_share: float = Field(gt=0, le=1)
     max_abs_spearman: float = Field(gt=0, le=1)
     local_sample_cases: int = Field(gt=0)
     masked_missing_values: tuple[str, ...] = ()
+    date_roles_file: Path
+    applicant_row_families: tuple[str, ...] = ()
+    numeric_stats: tuple[Literal["mean", "min", "max", "count", "std", "sum"], ...]
+    tax_registries: dict[str, TaxRegistryMap] = Field(default_factory=dict)
+
+    @field_validator("tax_registries")
+    @classmethod
+    def _date_suffix(cls, v: dict[str, TaxRegistryMap]) -> dict[str, TaxRegistryMap]:
+        for family, m in v.items():
+            if not (m.amount.endswith("A") and m.date.endswith("D") and m.employer.endswith("M")):
+                raise ValueError(f"tax registry {family}: expected amount *A, date *D, employer *M columns")
+        return v
 
 
 class ProtectedConfig(_Strict):

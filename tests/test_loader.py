@@ -29,6 +29,8 @@ def test_discovers_every_family_with_its_depth(families):
         "static_0": 0,
         "static_cb_0": 0,
         "tax_registry_a_1": 1,
+        "tax_registry_b_1": 1,
+        "tax_registry_c_1": 1,
     }
     assert families["credit_bureau_a_2"].key_columns == ("case_id", "num_group1", "num_group2")
 
