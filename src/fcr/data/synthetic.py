@@ -3,8 +3,13 @@
 Purpose: every commit's tests run on a clean clone with no competition data,
 so the code is exercised on files that look like the real ones: the same
 directory layout, file naming, depths and group indices, column-suffix codes,
-date strings, masked hash categories, empty strings used as missing, a
-near-empty column, protected attributes, and a planted leakage case.
+date strings, masked hash categories, a near-empty column, protected
+attributes, and a planted leakage case.
+
+Version 2 (C4.1) aligns two quirks with what C4 measured on the real data:
+missing categories are nulls, not empty strings (the real parquet has none),
+and chunk files split at case boundaries, so no case spans two chunks (true of
+every real chunked family, and what makes per-chunk aggregation exact).
 
 What it is not: a realistic simulation of credit risk. The target has a known,
 simple dependence on a few latent drivers so that later models can be checked
@@ -20,6 +25,7 @@ Fixture contract (asserted in tests/test_synthetic.py):
   - ``applprev_1`` contains rows whose ``approvaldate_319D`` falls *after* the
     case's ``date_decision``; their count is recorded in the manifest so the
     C5 leakage filter can be tested against a known answer.
+  - No case_id appears in more than one chunk of a family.
   - Output is a pure function of the spec: same seed, same bytes.
 """
 
@@ -33,7 +39,7 @@ from pathlib import Path
 import numpy as np
 import polars as pl
 
-GENERATOR_VERSION = 1
+GENERATOR_VERSION = 2
 
 # Real column names, taken from the public ETL write-up cited in REFERENCE.md
 # Section 4. Everything else is invented and marked [synthetic] in the
@@ -46,6 +52,7 @@ REAL_PERSON_COLUMNS = (
     "familystate_447L",
     "incometype_1044T",
     "mainoccupationinc_384A",
+    "sex_738L",
 )
 REAL_APPLPREV_COLUMNS = (
     "actualdpd_943P",
@@ -57,12 +64,14 @@ REAL_APPLPREV_COLUMNS = (
 
 _EDUCATION_HASHES = ("a55475b1", "P97_36_170", "P33_146_175", "P106_81_188", "P17_36_170")
 _EDUCATION_P = (0.52, 0.27, 0.17, 0.035, 0.005)
-_EMPLOYED_TOTAL = ("", "MORE_FIVE", "MORE_ONE", "LESS_ONE")
+_EMPLOYED_TOTAL = (None, "MORE_FIVE", "MORE_ONE", "LESS_ONE")
 _EMPLOYED_TOTAL_P = (0.65, 0.24, 0.09, 0.02)
-_INDUSTRY = ("", "OTHER", "GOVERNMENT", "EDUCATION", "TRADE", "HEALTH")
+_INDUSTRY = (None, "OTHER", "GOVERNMENT", "EDUCATION", "TRADE", "HEALTH")
 _INDUSTRY_P = (0.66, 0.25, 0.03, 0.02, 0.02, 0.02)
-_FAMILY = ("", "MARRIED", "SINGLE", "WIDOWED", "DIVORCED", "LIVING_WITH_PARTNER")
+_FAMILY = (None, "MARRIED", "SINGLE", "WIDOWED", "DIVORCED", "LIVING_WITH_PARTNER")
 _FAMILY_P = (0.52, 0.31, 0.12, 0.025, 0.015, 0.01)
+_SEX = (None, "F", "M")
+_SEX_P = (0.3, 0.38, 0.32)
 _INCOME_TYPE = (
     "PRIVATE_SECTOR_EMPLOYEE",
     "SALARIED_GOVT",
@@ -116,9 +125,20 @@ def _calibrated_intercept(score: np.ndarray, target_rate: float) -> float:
 
 
 def _write_chunks(df: pl.DataFrame, train_dir: Path, family: str, depth: int, n_chunks: int) -> list[str]:
-    """Split by rows into chunk files with identical columns, as the real data does."""
+    """Split into chunk files with identical columns, cutting only between cases.
+
+    Rows are generated grouped by case, so each cut moves forward to the next
+    row whose case_id differs from the row before it.
+    """
     stems = []
-    bounds = np.linspace(0, df.height, n_chunks + 1).astype(int)
+    ids = df["case_id"].to_numpy()
+    bounds = [0]
+    for target in np.linspace(0, df.height, n_chunks + 1).astype(int)[1:-1]:
+        cut = max(int(target), bounds[-1])
+        while 0 < cut < df.height and ids[cut] == ids[cut - 1]:
+            cut += 1
+        bounds.append(cut)
+    bounds.append(df.height)
     for i in range(n_chunks):
         stem = f"train_{family}_{depth}_{i}"
         df.slice(bounds[i], bounds[i + 1] - bounds[i]).write_parquet(train_dir / f"{stem}.parquet")
@@ -249,6 +269,7 @@ def generate_synthetic_dataset(root: str | Path, spec: SyntheticSpec | None = No
             "familystate_447L": applicant_only(rng.choice(_FAMILY, size=m, p=_FAMILY_P)),
             "incometype_1044T": applicant_only(rng.choice(_INCOME_TYPE, size=m, p=_INCOME_TYPE_P)),
             "mainoccupationinc_384A": applicant_only(income[owner]),
+            "sex_738L": applicant_only(rng.choice(_SEX, size=m, p=_SEX_P)),
         },
         schema_overrides={"mainoccupationinc_384A": pl.Float64},
     )
@@ -262,6 +283,7 @@ def generate_synthetic_dataset(root: str | Path, spec: SyntheticSpec | None = No
         "familystate_447L": "Family state of the client.",
         "incometype_1044T": "Type of income of the client.",
         "mainoccupationinc_384A": "Income of the client's main occupation.",
+        "sex_738L": "Gender of the client.",
     }
 
     # ---- applprev_1: depth 1, two row chunks, planted leakage ----

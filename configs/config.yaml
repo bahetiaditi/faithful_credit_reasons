@@ -27,14 +27,36 @@ features:                       # Section 5.1
   max_missing_share: 0.95
   max_abs_spearman: 0.95
   local_sample_cases: 50000
+  # Masked values that encode "missing", read as null before encoding. C4:
+  # a55475b1 is the most frequent value in 53 of 63 masked columns (median
+  # share 82%), which no real category would be.
+  masked_missing_values: [a55475b1]
 
 protected:                      # Section 4.4: excluded from the model, kept for slice analysis only
+  # Every column C4's inventory flagged (results/c04/eda_summary.json) is
+  # decided here; a test fails if a flagged column is in none of the lists.
   columns:
-    - birth_259D                # birth date, hence age
-    - familystate_447L          # family status
-    - incometype_1044T          # contains disability-coded categories
+    - sex_738L                  # person_1, values F/M
+    - gender_992L               # person_1, values F/M
+    - birth_259D                # person_1, birth date (age)
+    - birthdate_87D             # person_1, birth date (age)
+    - birthdate_574D            # static_cb_0, bureau birth date (age)
+    - dateofbirth_337D          # static_cb_0, birth date (age)
+    - dateofbirth_342D          # static_cb_0, birth date (age)
+    - familystate_447L          # person_1, family status
+    - familystate_726L          # applprev_1, family status on a previous application
+    - maritalst_703L            # person_1, marital status
+    - maritalst_385M            # static_cb_0, marital status (masked)
+    - maritalst_893M            # static_cb_0, marital status (masked)
+  # Income type stays a feature (salaried, pensioner, self-employed carry real
+  # repayment information) but its disability codes are recoded in the model
+  # matrix only; the original column is kept for the slice analysis.
+  disability_recode_column: incometype_1044T
   disability_income_values: [HANDICAPPED, HANDICAPPED_2, HANDICAPPED_3]
   disability_recode_value: OTHER
+  # Flagged by the inventory's word match but not a protected attribute.
+  reviewed_not_protected:
+    - equalitydataagreement_891L  # flags a change in socio-demographic data; matched "family" in its definition
 
 model:                          # Sections 5.2 and 5.3
   target_approval_rate: 0.85    # tau is a policy choice, set on validation weeks

@@ -1,6 +1,6 @@
 # REFERENCE — Faithful Credit Reasons
 
-Exported from the live reference doc; regenerate this file whenever the doc changes. Last export: 2026-11-27 (C4).
+Exported from the live reference doc; regenerate this file whenever the doc changes. Last export: 2026-11-27 (C4.1).
 
 ## 0. How to use this document
 
@@ -179,33 +179,40 @@ The last letter of each column name tells you how the raw value was transformed 
 
 ### 4.3 Data facts that shape the design
 
-- **Imbalance:** 47,994 defaults out of 1,526,659 (3.14%). PR-AUC and calibration matter as much as ROC-AUC.
-- **Masked categories:** `education_927M` takes values like `P97_36_170`, and one hash (`a55475b1`) covers 52% of rows, likely a missing-value placeholder. A reason like "education category P97\_36\_170" is meaningless to a customer, so M-suffix features either map to a generic group ("application details") or are excluded from customer-facing reasons. Failure mode 9 exists because of this.
-- **Empty strings as missing:** employment length and industry are empty for about 65% of rows. Treat empty strings as missing explicitly.
-- **Near-empty columns:** `riskassesment_940T` is missing for 96.5% of rows. A screening rule drops columns above a missingness threshold, set in config.
+- **Imbalance:** 47,994 defaults out of 1,526,659 (3.14%), verified in C3. PR-AUC and calibration matter as much as ROC-AUC.
+- **Missing values are nulls.** C4 counted zero empty strings in the parquet files; the ETL write-up's "(Empty string)" was an artefact of its CSV import. Of 464 feature columns, 62 are more than 95% missing (screened out), 140 are 50–95% missing and 173 under 10% (row level).
+- **Masked placeholder:** `a55475b1` is the most frequent value in 53 of 63 masked columns, with a median share of 82%. No real category behaves like that, so it is read as null (`features.masked_missing_values` in the config). Masked values still can never be named to a customer, which is why failure mode 9 exists.
+- **Dates:** all 57 date columns are ISO strings and all parse. Extremes include 1900-01-01, 1900-01-15 and 2098-01-15 (bureau contract end dates), which look like sentinels; C5 counts them before treating them as missing. 38 of 57 date columns hold values after the last decision date: some are scheduled dates (contract end, maturity) that may lie in the future, others are event dates (approval, creation, activation, last payment) that must not.
 - **Target definition:** at least one unpaid payment within a set period, with day and amount tolerances (per the organisers' forum answer quoted in the ETL write-up). We do not know the exact window, which goes in the model card's limitations.
-- **Time span crosses COVID-19:** decisions run from 2019-01 to 2020-10, so the later weeks include the pandemic shock. This is a feature, not a bug: it gives a real drift test.
 - **Metric gaming:** competitors gamed the official stability metric's slope term by adjusting test scores ([W&B write-up](https://wandb.ai/byyoung3/ml-news/reports/My-First-Kaggle-Challenge-Lessons-Learned--Vmlldzo3MDY0MTU3)). We report mean weekly Gini, its slope and residual spread as separate numbers, and never post-process scores by week.
 
 ### 4.4 Protected and sensitive attributes
 
-The data contains birth date (therefore age), family status, and an income-type field whose categories include `HANDICAPPED`, `HANDICAPPED_2` and `HANDICAPPED_3`, which are a disability proxy. A sex or gender column may exist in the person tables; verify in C4.
+C4 searched every column's name, definition and category values. It found 12 columns that carry a protected attribute: two sex columns (`sex_738L`, `gender_992L`, values F and M), five birth dates (`birth_259D`, `birthdate_87D`, `birthdate_574D`, `dateofbirth_337D`, `dateofbirth_342D`) and five family or marital status columns (`familystate_447L`, `familystate_726L`, `maritalst_703L`, and the masked `maritalst_385M`, `maritalst_893M`). Income type `incometype_1044T` was found only through its values `HANDICAPPED`, `HANDICAPPED_2` and `HANDICAPPED_3`, a disability proxy. One match, `equalitydataagreement_891L`, flags a change in socio-demographic data; it was reviewed and is not a protected attribute.
 
-**Decision:** these attributes are excluded from the model's features, disability-coded income types are recoded to a single non-specific category, and none can ever appear as a reason (failure mode 7). They are kept *only* for an after-the-fact slice analysis, because dropping a column does not stop proxies from carrying the same information. Ablation M4 reports the AUC cost of exclusion.
+**Decision:** the 12 are excluded from the model's features and kept *only* for slice analysis. Income type stays a feature, because salaried, pensioner and self-employed carry real repayment information, but its disability codes are recoded to OTHER in the model matrix. None can ever appear as a reason (failure mode 7). The lists live in `configs/config.yaml`, and a test fails if a future EDA run flags a column that no list covers. Dropping a column does not remove proxies ("retired pensioner" carries age), which is why the slice analysis exists. Ablation M4 reports the AUC cost of exclusion.
 
 ### 4.5 Out-of-time split
 
-| Split | WEEK\_NUM | Approx. dates | Used for |
-| --- | --- | --- | --- |
-| Train | 0–63 | Jan 2019 – Mar 2020 | Fitting models |
-| Validation | 64–77 | Apr – Jul 2020 | Early stopping, calibration, choosing τ |
-| Test | 78–91 | Jul – Oct 2020 | Reported numbers; touched once |
+| Split | WEEK\_NUM | Decision dates | Applications | Defaults (rate) | Used for |
+| --- | --- | --- | --- | --- | --- |
+| Train | 0–63 | 1 Jan 2019 – 23 Mar 2020 | 1,282,082 | 42,524 (3.32%) | Fitting models |
+| Validation | 64–77 | 24 Mar – 29 Jun 2020 | 92,870 | 2,255 (2.43%) | Early stopping, calibration, choosing τ |
+| Test | 78–91 | 30 Jun – 5 Oct 2020 | 151,707 | 3,215 (2.12%) | Reported numbers; touched once |
 
-Dates are approximate (WEEK\_NUM 0 is the first week of January 2019); C7 computes the exact boundaries. Validation and test both fall after the pandemic onset, so the gap between train and validation performance is itself a drift finding. The split is frozen in git before any model is trained, as in Project 2.
+Measured in C4; boundary dates are each week's first decision date. The WHO's pandemic declaration (11 Mar 2020) falls in week 63, the last training week, so the model is fitted entirely on pre-pandemic applications and validated and tested entirely on pandemic-era ones. That is a hard but realistic test. The cost is a small validation set: 2,255 defaults, with weekly volume down to 825 in week 68. Open decision for C7: keep this boundary (recommended) or move validation into pre-pandemic weeks. The split is frozen in git before any model is trained, as in Project 2.
 
 ### 4.6 Compute
 
-The raw files are too large for comfortable laptop work: the ETL author could not load them into laptop memory and moved to a database. All raw-to-feature work runs on Kaggle with Polars lazy frames. The resulting case-level feature table is saved as a private Kaggle Dataset and as a 50k-case sample for local work.
+C3 and C4 measured the scale: 17 families and 464 feature columns, with `credit_bureau_a_2` alone at 188.3M rows. Building the schema registry peaked at 16.5 GB of Kaggle's 31.3 GB. No case's rows span two chunk files in any chunked family, so C5 aggregates chunk by chunk and concatenates the results, which is exact. All raw-to-feature work runs on Kaggle with Polars lazy frames; the case-level feature table is saved as a private Kaggle Dataset and as a 50k-case sample for local work.
+
+### 4.7 What changes over time
+
+C4 found three kinds of drift; the figures are in `results/c04/figures/`.
+
+- **Default rate.** It rises from 2.79% (Jan–Jun 2019) to 3.30% (Jul–Dec 2019) and 4.44% (Jan–mid Mar 2020), then drops to 2.61% in the first pandemic weeks and 2.12% in test. Calibration is therefore fitted on validation weeks, never on train. The data cannot say why the rate fell (tighter approvals, payment moratoria and a shorter observation window are all candidates); the model card says so.
+- **Volume.** Weekly applications fell from 15–18k in early 2020 to 825 in week 68 (late April) and recovered to 12–18k by September.
+- **Which tables exist for an applicant.** The three tax registries are one source supplied in turn by three providers: c covers Jan–Sep 2019, a covers Aug 2019–Apr 2020, b covers Apr 2020 onwards. Train has almost no registry b data and test has only b, so modelled separately their features would encode time rather than risk. C6 therefore harmonises them into one set (amount, date, employer). Bureau coverage also rises, from 55% in Jan 2019 to over 95%; `static_cb_0` goes from 69% to 100%; `person_2` falls from 100% to 46% by Oct 2020; and `other_1` appears only in 2020. These feed the PSI monitoring in Section 5.4 and are expected to surface as reason drift.
 
 ## 5. ML layer
 
@@ -215,11 +222,13 @@ For scale: one public student project reported test ROC-AUC of about 0.78 with L
 
 ### 5.1 Feature engineering
 
-1. **Concatenate** row-split files and join column-split files per table family.
-2. **Leakage control.** Convert every D-suffix date to days before `date_decision`, and drop any historical record dated after the decision. A unit test asserts no feature uses information from after `date_decision`.
-3. **Aggregate depth 1 and 2** to case level. Numeric: count, mean, max, min, last-by-`num_group1`; P-suffix (days past due): max, count of positive values, and recency of the last positive. Categorical: mode and number of distinct values.
-4. **Screen.** Drop columns above a missingness threshold (default 95%), near-constant columns, and one of each pair with |Spearman ρ| > 0.95.
-5. **Ratios.** A small set of affordability ratios built from A-suffix amounts (instalment to income, credit to income), because these are both predictive and explainable.
+1. **Concatenate and aggregate per chunk.** Chunk files of a family are concatenated lazily; heavy families are aggregated one chunk at a time, which is exact because no case spans two chunks (C4).
+2. **Clean first.** Read `a55475b1` as null in masked columns, treat sentinel dates (1900-01-xx, 2098-01-15, once C5 confirms them) as missing, and recode disability-coded income types.
+3. **Leakage control.** Classify each date column as an event date (approval, creation, activation, payment) or a scheduled date (contract end, maturity). Convert every date to days relative to `date_decision`, and drop records whose event date falls after their own case's `date_decision`. A unit test asserts no feature uses information from after `date_decision`.
+4. **Harmonise the tax registries.** Map registries a, b and c onto one schema (amount, date, employer) before aggregating, so the features describe the applicant rather than which provider was active (Section 4.7).
+5. **Aggregate depth 1 and 2** to case level. Numeric: count, mean, max, min, last-by-`num_group1`; P-suffix (days past due): max, count of positive values, and recency of the last positive. Categorical: mode and number of distinct values.
+6. **Screen.** Drop columns above a missingness threshold (default 95%), near-constant columns, and one of each pair with |Spearman ρ| > 0.95.
+7. **Ratios.** A small set of affordability ratios built from A-suffix amounts (instalment to income, credit to income), because these are both predictive and explainable.
 
 Correlation pruning is an explanation decision as much as a modelling one. Shapley attributions split credit among correlated features, so near-duplicates make individual reasons look weaker and less stable than they are. Reason groups (Section 6.2) fix the remainder.
 
@@ -617,9 +626,9 @@ Draft now, fill numbers only when measured. **Every bracketed placeholder is cur
 **Open decisions** (settle each at the commit named):
 
 - [ ] Approval-rate target for τ: default 85% (C11)
-- [ ] Exact split week boundaries, and whether validation should start before the pandemic onset (C7)
+- [ ] Exact split week boundaries, and whether validation should start before the pandemic onset (C7). C4 recommendation: keep weeks 64–77 (Section 4.5)
 - [ ] Generation model: Groq gpt-oss or Gemini Flash-Lite, pinned for all four conditions (C19)
-- [ ] Whether a sex or gender column exists and how it is handled (C4)
+- [ ] Sex column: resolved in C4. sex\_738L and gender\_992L exist (F/M); both are excluded from the model and used for slices
 - [ ] Competition rules on publishing derived artifacts (C1)
 - [ ] Whether RBI's Fair Practices Code requires written rejection reasons, and the current status of CFPB Circular 2022-03 (before interviews)
 - [ ] Optional demo of one applicant's letter and verifier trace: yes or no (C28)
@@ -628,7 +637,9 @@ Draft now, fill numbers only when measured. **Every bracketed placeholder is cur
 
 | Date | Commit | What happened |
 | --- | --- | --- |
-| 2026-11-27 | C3 | Real data loads and matches the published figures exactly: 1,526,659 base rows, 47,994 defaults (3.14%), decisions 2019-01-01 to 2020-10-05. 17 families, 464 feature columns; every column follows the suffix convention and has a definition; no duplicate keys, no case\_ids outside base, no chunk type conflicts. All 57 D (date) columns are stored as strings; L columns mix Float64 (143), String (31) and Boolean (13). credit\_bureau\_a\_2 has 188.3M rows (about 136 per case); the registry check alone peaked at 16.1 GB of Kaggle's 31 GB, so C5 must aggregate that family in chunks or with the streaming engine. Coverage varies widely: credit\_bureau\_b reaches 36,500 cases (2.4%), the three tax registries 458k, 151k and 482k. |
-| 2026-11-27 | C2 | Ported Project 2's provider, quota ledger, prompt cache, JSON repair and tracer into `fcr.llm` (google-genai 2.22 to 3.6.1 checked: every call Project 2 makes still exists). Roles are generation, extraction and grader; config validation rejects a grader that shares a model with generation. New: JSON truncation repair can be switched off, and claim lists use it off, because a truncated claim list would otherwise parse as a shorter valid one and the verifier would check fewer claims than the letter makes. Tracer generalised: Project 2's routing and decision-surface events replaced by a generic `decision` event for the verify-and-regenerate loop. 216 tests pass. Live smoke at 749386d: 4 of 5 models answer, cache and fallback (gpt-oss-120b to qwen) work on real Groq calls, and the extractor pulled both factors from a test letter with truncation repair off. gemma-4-31b-it returned 503 UNAVAILABLE (provider overload, not a bad model id), matching Project 2's note that it is unreliable; it stays as the last extraction fallback and is reconsidered when extraction is pinned in C19. Both projects share API quotas but keep separate ledgers. |
-| 2026-11-27 | C1.1 | Kaggle mounts the competition at `/kaggle/input/competitions/<slug>`. Config fixed; `fcr.data.paths.locate_competition_dir` falls back to known layouts. With the pinned lock, Kaggle (Python 3.13) runs identical versions to the Mac and passes all 71 tests. Data confirmed: 32 train parquet files, about 1.27 GB compressed. |
-| 2026-11-27 | C1 | Built in clean Python 3.12 and 3.11 venvs. Mac (3.12.5): 65 tests and smoke pass. Kaggle (3.13.18): smoke passes at 12452a3. Added `fcr.data.naming` early so fixtures and the C3 loader share one definition. Kaggle install changed to clone + `pip install -e`. Finding: a loose install left Kaggle on different major versions (polars 1.35 vs 2.2, pandas 2.3 vs 3.1) and broke some preinstalled cvxpy solvers, so Kaggle now installs the pinned lock. |
+| 2026-11-27 | C4.1 | C4 results committed under `results/c04/`. Config now records C4's decisions: 12 protected columns (was 3), income type kept with disability codes recoded, `a55475b1` read as null, one reviewed false positive. Tests tie the config to the committed schema: every protected column must exist, and every column the inventory flagged must be decided. Synthetic generator v2 matches the real data: nulls instead of empty strings, chunks cut at case boundaries, a sex column. Section 4 rewritten from measured figures; new Section 4.7 on drift; feature-engineering steps for leakage by date role and tax-registry harmonisation. 243 tests pass. |
+| 2026-11-27 | C4 | EDA on the real data at c531cdc, 112 s, peak 16.5 GB. Split sizes 1,282,082 / 92,870 / 151,707 with default rates 3.32% / 2.43% / 2.12%; the pandemic declaration falls in week 63, the last training week. Zero empty strings; 62 columns over 95% missing. `a55475b1` tops 53 of 63 masked columns. Protected inventory found sex and gender columns, five birth dates, five family/marital columns and disability codes in income type. The tax registries cover successive periods (c, then a, then b). No case spans chunks in any family. All 57 date columns parse; 38 have values after the last decision date. |
+| 2026-11-27 | C3 | Real data loads and matches the published figures exactly: 1,526,659 base rows, 47,994 defaults (3.14%), decisions 2019-01-01 to 2020-10-05. 17 families, 464 feature columns; every column follows the suffix convention and has a definition; no duplicate keys, no case\_ids outside base, no chunk type conflicts. All 57 D (date) columns are stored as strings; L columns mix Float64 (143), String (31) and Boolean (13). credit\_bureau\_a\_2 has 188.3M rows (about 136 per case); the registry check alone peaked at 16.1 GB of Kaggle's 31 GB. Coverage varies widely: credit\_bureau\_b reaches 36,500 cases (2.4%), the three tax registries 458k, 151k and 482k. |
+| 2026-11-27 | C2 | Ported Project 2's provider, quota ledger, prompt cache, JSON repair and tracer into `fcr.llm` (google-genai 2.22 to 3.6.1 checked). Roles are generation, extraction and grader; config validation rejects a grader that shares a model with generation. JSON truncation repair can be switched off, and claim lists use it off. Tracer generalised to a generic `decision` event. 216 tests pass. Live smoke at 749386d: 4 of 5 models answer, cache and fallback work on real Groq calls; gemma-4-31b-it returned 503 UNAVAILABLE (provider overload) and stays as the last extraction fallback. Both projects share API quotas but keep separate ledgers. |
+| 2026-11-27 | C1.1 | Kaggle mounts the competition at `/kaggle/input/competitions/<slug>`. Config fixed; `fcr.data.paths.locate_competition_dir` falls back to known layouts. With the pinned lock, Kaggle (Python 3.13) runs identical versions to the Mac and passes all 71 tests. |
+| 2026-11-27 | C1 | Built in clean Python 3.12 and 3.11 venvs; Mac (3.12.5) and Kaggle (3.13.18) smoke pass. Added `fcr.data.naming` early so fixtures and the C3 loader share one definition. Finding: a loose install left Kaggle on different major versions (polars 1.35 vs 2.2, pandas 2.3 vs 3.1), so Kaggle now installs the pinned lock. |

@@ -1,0 +1,1746 @@
+[
+ {
+  "family": "applprev_1",
+  "column": "cancelreason_3545846M",
+  "distinct": 76,
+  "non_null": 6525979,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.6824096430589188
+   },
+   {
+    "value": "P94_109_143",
+    "share_of_non_null": 0.23035333089487417
+   },
+   {
+    "value": "P30_86_84",
+    "share_of_non_null": 0.012289956801883672
+   },
+   {
+    "value": "P180_60_137",
+    "share_of_non_null": 0.01148731860767557
+   },
+   {
+    "value": "P73_130_169",
+    "share_of_non_null": 0.01044594228697334
+   }
+  ]
+ },
+ {
+  "family": "applprev_1",
+  "column": "district_544M",
+  "distinct": 1063,
+  "non_null": 6525979,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.11963752871408259
+   },
+   {
+    "value": "P131_33_167",
+    "share_of_non_null": 0.04466977291836213
+   },
+   {
+    "value": "P123_6_84",
+    "share_of_non_null": 0.03887631265745722
+   },
+   {
+    "value": "P197_47_166",
+    "share_of_non_null": 0.03179032601851768
+   },
+   {
+    "value": "P204_99_158",
+    "share_of_non_null": 0.027701744060163232
+   }
+  ]
+ },
+ {
+  "family": "applprev_1",
+  "column": "education_1138M",
+  "distinct": 6,
+  "non_null": 6525979,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.4708904211919775
+   },
+   {
+    "value": "P97_36_170",
+    "share_of_non_null": 0.35415345345119864
+   },
+   {
+    "value": "P33_146_175",
+    "share_of_non_null": 0.16112923440299148
+   },
+   {
+    "value": "P106_81_188",
+    "share_of_non_null": 0.006748106299453308
+   },
+   {
+    "value": "P17_36_170",
+    "share_of_non_null": 0.006609583021949657
+   }
+  ]
+ },
+ {
+  "family": "applprev_1",
+  "column": "postype_4733339M",
+  "distinct": 9,
+  "non_null": 6525979,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.5791966232192902
+   },
+   {
+    "value": "P177_117_192",
+    "share_of_non_null": 0.20545698967158796
+   },
+   {
+    "value": "P46_145_78",
+    "share_of_non_null": 0.10651076259975706
+   },
+   {
+    "value": "P149_40_170",
+    "share_of_non_null": 0.041579048905918944
+   },
+   {
+    "value": "P60_146_156",
+    "share_of_non_null": 0.031922413480031116
+   }
+  ]
+ },
+ {
+  "family": "applprev_1",
+  "column": "profession_152M",
+  "distinct": 11508,
+  "non_null": 6525979,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9887587747370931
+   },
+   {
+    "value": "P46_72_80",
+    "share_of_non_null": 0.00030079778068547265
+   },
+   {
+    "value": "P104_137_180",
+    "share_of_non_null": 0.0002137610311035325
+   },
+   {
+    "value": "P167_22_171",
+    "share_of_non_null": 0.0001644197751785594
+   },
+   {
+    "value": "P143_116_69",
+    "share_of_non_null": 0.00015430635005108046
+   }
+  ]
+ },
+ {
+  "family": "applprev_1",
+  "column": "rejectreason_755M",
+  "distinct": 18,
+  "non_null": 6525979,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.7146293299442122
+   },
+   {
+    "value": "P94_109_143",
+    "share_of_non_null": 0.12416910933976343
+   },
+   {
+    "value": "P99_56_166",
+    "share_of_non_null": 0.10928597839496572
+   },
+   {
+    "value": "P45_84_106",
+    "share_of_non_null": 0.023781259486124612
+   },
+   {
+    "value": "P198_131_9",
+    "share_of_non_null": 0.02357945068471719
+   }
+  ]
+ },
+ {
+  "family": "applprev_1",
+  "column": "rejectreasonclient_4145042M",
+  "distinct": 14,
+  "non_null": 6525979,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.7589270514048544
+   },
+   {
+    "value": "P94_109_143",
+    "share_of_non_null": 0.21713477778583107
+   },
+   {
+    "value": "P30_86_84",
+    "share_of_non_null": 0.01195422173439418
+   },
+   {
+    "value": "P52_67_90",
+    "share_of_non_null": 0.004679451159741703
+   },
+   {
+    "value": "P69_72_116",
+    "share_of_non_null": 0.0031256612992472087
+   }
+  ]
+ },
+ {
+  "family": "applprev_2",
+  "column": "cacccardblochreas_147M",
+  "distinct": 9,
+  "non_null": 13966238,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9994418683112803
+   },
+   {
+    "value": "P33_145_161",
+    "share_of_non_null": 0.00023692851288944095
+   },
+   {
+    "value": "P201_63_60",
+    "share_of_non_null": 0.00021193967910327748
+   },
+   {
+    "value": "P19_60_110",
+    "share_of_non_null": 8.126741073723647e-05
+   },
+   {
+    "value": "P23_105_103",
+    "share_of_non_null": 8.377345424014685e-06
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_1",
+  "column": "classificationofcontr_13M",
+  "distinct": 11,
+  "non_null": 15940537,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.8333355394488906
+   },
+   {
+    "value": "ea6782cc",
+    "share_of_non_null": 0.14460328406753173
+   },
+   {
+    "value": "01f63ac8",
+    "share_of_non_null": 0.014220035372710467
+   },
+   {
+    "value": "00135d9c",
+    "share_of_non_null": 0.005181632212264869
+   },
+   {
+    "value": "4408ff0f",
+    "share_of_non_null": 0.002399417284373795
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_1",
+  "column": "classificationofcontr_400M",
+  "distinct": 389,
+  "non_null": 15940537,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.577113054597847
+   },
+   {
+    "value": "ea6782cc",
+    "share_of_non_null": 0.2580342180442227
+   },
+   {
+    "value": "01f63ac8",
+    "share_of_non_null": 0.061928653971945864
+   },
+   {
+    "value": "00135d9c",
+    "share_of_non_null": 0.025069418928609494
+   },
+   {
+    "value": "42a42e75",
+    "share_of_non_null": 0.010855907802855074
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_1",
+  "column": "contractst_545M",
+  "distinct": 51,
+  "non_null": 15940537,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.8336428063872628
+   },
+   {
+    "value": "7241344e",
+    "share_of_non_null": 0.16116866075465336
+   },
+   {
+    "value": "8f3a197f",
+    "share_of_non_null": 0.0014977538084193776
+   },
+   {
+    "value": "0dc85f9d",
+    "share_of_non_null": 0.0012523417498419283
+   },
+   {
+    "value": "dd67cff0",
+    "share_of_non_null": 0.0004681774522401598
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_1",
+  "column": "contractst_964M",
+  "distinct": 295,
+  "non_null": 15940537,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.5765791328108959
+   },
+   {
+    "value": "7241344e",
+    "share_of_non_null": 0.3966872006884084
+   },
+   {
+    "value": "8f3a197f",
+    "share_of_non_null": 0.006763699365962389
+   },
+   {
+    "value": "a3386307",
+    "share_of_non_null": 0.0035890258904075815
+   },
+   {
+    "value": "8260bab9",
+    "share_of_non_null": 0.002734286806021654
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_1",
+  "column": "description_351M",
+  "distinct": 12,
+  "non_null": 15940537,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9961109842159019
+   },
+   {
+    "value": "6da7c7ed",
+    "share_of_non_null": 0.0009142101047160457
+   },
+   {
+    "value": "95decc86",
+    "share_of_non_null": 0.0006293388986832753
+   },
+   {
+    "value": "f8e51f8d",
+    "share_of_non_null": 0.00043191769511905404
+   },
+   {
+    "value": "53179c19",
+    "share_of_non_null": 0.00041397601598992557
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_1",
+  "column": "financialinstitution_382M",
+  "distinct": 390,
+  "non_null": 15940537,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.5763946346349561
+   },
+   {
+    "value": "Home Credit",
+    "share_of_non_null": 0.13334048909393706
+   },
+   {
+    "value": "P133_127_114",
+    "share_of_non_null": 0.04880594675072741
+   },
+   {
+    "value": "P150_136_157",
+    "share_of_non_null": 0.03967915259065614
+   },
+   {
+    "value": "b619fa46",
+    "share_of_non_null": 0.03848948125147854
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_1",
+  "column": "financialinstitution_591M",
+  "distinct": 238,
+  "non_null": 15940537,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.8331752562664608
+   },
+   {
+    "value": "P204_66_73",
+    "share_of_non_null": 0.047076393975936943
+   },
+   {
+    "value": "Home Credit",
+    "share_of_non_null": 0.04229217622969665
+   },
+   {
+    "value": "b619fa46",
+    "share_of_non_null": 0.017548969648889495
+   },
+   {
+    "value": "P133_127_114",
+    "share_of_non_null": 0.016797802984930808
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_1",
+  "column": "purposeofcred_426M",
+  "distinct": 19,
+  "non_null": 15940537,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.8331752562664608
+   },
+   {
+    "value": "60c73645",
+    "share_of_non_null": 0.12573051961800283
+   },
+   {
+    "value": "96a8fdfe",
+    "share_of_non_null": 0.03910840644828967
+   },
+   {
+    "value": "e19fdece",
+    "share_of_non_null": 0.0007269516704487434
+   },
+   {
+    "value": "164ee705",
+    "share_of_non_null": 0.00042244499040402464
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_1",
+  "column": "purposeofcred_874M",
+  "distinct": 24,
+  "non_null": 15940537,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.5764237428136831
+   },
+   {
+    "value": "60c73645",
+    "share_of_non_null": 0.1961104572574939
+   },
+   {
+    "value": "96a8fdfe",
+    "share_of_non_null": 0.10812634480256217
+   },
+   {
+    "value": "5065c2b8",
+    "share_of_non_null": 0.10168503106262983
+   },
+   {
+    "value": "e19fdece",
+    "share_of_non_null": 0.007959644019520798
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_1",
+  "column": "subjectrole_182M",
+  "distinct": 9,
+  "non_null": 15940537,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.918133059130944
+   },
+   {
+    "value": "ab3c25cf",
+    "share_of_non_null": 0.07895442920147545
+   },
+   {
+    "value": "be4fd70b",
+    "share_of_non_null": 0.0015525198429638851
+   },
+   {
+    "value": "daf49a8a",
+    "share_of_non_null": 0.0010183471234375605
+   },
+   {
+    "value": "P28_48_88",
+    "share_of_non_null": 0.00024409466255747846
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_1",
+  "column": "subjectrole_93M",
+  "distinct": 9,
+  "non_null": 15940537,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9199812402806756
+   },
+   {
+    "value": "ab3c25cf",
+    "share_of_non_null": 0.07701942538071334
+   },
+   {
+    "value": "be4fd70b",
+    "share_of_non_null": 0.0014201529095287065
+   },
+   {
+    "value": "daf49a8a",
+    "share_of_non_null": 0.001180010435031141
+   },
+   {
+    "value": "15f04f45",
+    "share_of_non_null": 0.0003900119550552155
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_2",
+  "column": "collater_typofvalofguarant_298M",
+  "distinct": 5,
+  "non_null": 188298452,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9853778139397555
+   },
+   {
+    "value": "9a0c095e",
+    "share_of_non_null": 0.009968053268966864
+   },
+   {
+    "value": "8fd95e4b",
+    "share_of_non_null": 0.004646251685595376
+   },
+   {
+    "value": "06fb9ba8",
+    "share_of_non_null": 7.81206634667395e-06
+   },
+   {
+    "value": "26cf31be",
+    "share_of_non_null": 6.903933549066032e-08
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_2",
+  "column": "collater_typofvalofguarant_407M",
+  "distinct": 8,
+  "non_null": 188298452,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9634396888191094
+   },
+   {
+    "value": "9a0c095e",
+    "share_of_non_null": 0.019965283623255704
+   },
+   {
+    "value": "8fd95e4b",
+    "share_of_non_null": 0.01653458096405381
+   },
+   {
+    "value": "06fb9ba8",
+    "share_of_non_null": 5.215656260413654e-05
+   },
+   {
+    "value": "3cbe86ba",
+    "share_of_non_null": 7.9926307625726e-06
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_2",
+  "column": "collaterals_typeofguarante_359M",
+  "distinct": 15,
+  "non_null": 188298452,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.96344194056359
+   },
+   {
+    "value": "c7a5ad39",
+    "share_of_non_null": 0.02793145107746292
+   },
+   {
+    "value": "3cbe86ba",
+    "share_of_non_null": 0.005914483035686348
+   },
+   {
+    "value": "9276e4bb",
+    "share_of_non_null": 0.0009274266365184988
+   },
+   {
+    "value": "0e63c0f0",
+    "share_of_non_null": 0.0005881248561724766
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_2",
+  "column": "collaterals_typeofguarante_669M",
+  "distinct": 15,
+  "non_null": 188298452,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9853785202652648
+   },
+   {
+    "value": "c7a5ad39",
+    "share_of_non_null": 0.01308800456840718
+   },
+   {
+    "value": "9276e4bb",
+    "share_of_non_null": 0.0005827026129774025
+   },
+   {
+    "value": "0e63c0f0",
+    "share_of_non_null": 0.0004506781606468013
+   },
+   {
+    "value": "168ad9f3",
+    "share_of_non_null": 0.0001902352335854572
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_2",
+  "column": "subjectroles_name_541M",
+  "distinct": 11,
+  "non_null": 188298452,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9638305151866039
+   },
+   {
+    "value": "ab3c25cf",
+    "share_of_non_null": 0.035523271322485436
+   },
+   {
+    "value": "15f04f45",
+    "share_of_non_null": 0.00034710322525646677
+   },
+   {
+    "value": "be4fd70b",
+    "share_of_non_null": 0.00018564146241627094
+   },
+   {
+    "value": "daf49a8a",
+    "share_of_non_null": 0.00011115333013996312
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_a_2",
+  "column": "subjectroles_name_838M",
+  "distinct": 9,
+  "non_null": 188298452,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9857809930375848
+   },
+   {
+    "value": "ab3c25cf",
+    "share_of_non_null": 0.013834988935543666
+   },
+   {
+    "value": "be4fd70b",
+    "share_of_non_null": 0.00016802049971180856
+   },
+   {
+    "value": "15f04f45",
+    "share_of_non_null": 0.00010244906315002526
+   },
+   {
+    "value": "daf49a8a",
+    "share_of_non_null": 9.259237032920483e-05
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_b_1",
+  "column": "classificationofcontr_1114M",
+  "distinct": 10,
+  "non_null": 85791,
+  "top": [
+   {
+    "value": "ea6782cc",
+    "share_of_non_null": 0.787145504773228
+   },
+   {
+    "value": "01f63ac8",
+    "share_of_non_null": 0.08631441526500448
+   },
+   {
+    "value": "00135d9c",
+    "share_of_non_null": 0.055879987411266915
+   },
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.047324311407956544
+   },
+   {
+    "value": "07b11743",
+    "share_of_non_null": 0.013334732081453766
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_b_1",
+  "column": "contractst_516M",
+  "distinct": 15,
+  "non_null": 85791,
+  "top": [
+   {
+    "value": "7241344e",
+    "share_of_non_null": 0.867783333916145
+   },
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.04803534170250959
+   },
+   {
+    "value": "8f3a197f",
+    "share_of_non_null": 0.022216782646198318
+   },
+   {
+    "value": "0dc85f9d",
+    "share_of_non_null": 0.014488699280810341
+   },
+   {
+    "value": "a52d5641",
+    "share_of_non_null": 0.010945204042382068
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_b_1",
+  "column": "contracttype_653M",
+  "distinct": 25,
+  "non_null": 85791,
+  "top": [
+   {
+    "value": "4257cbed",
+    "share_of_non_null": 0.4852024105092609
+   },
+   {
+    "value": "1c9c5356",
+    "share_of_non_null": 0.4372020375097621
+   },
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.04536606403935145
+   },
+   {
+    "value": "724be82a",
+    "share_of_non_null": 0.008147707801517641
+   },
+   {
+    "value": "5015212e",
+    "share_of_non_null": 0.00641092888531431
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_b_1",
+  "column": "credor_3940957M",
+  "distinct": 151,
+  "non_null": 85791,
+  "top": [
+   {
+    "value": "b619fa46",
+    "share_of_non_null": 0.3634763553286475
+   },
+   {
+    "value": "P0_31_66",
+    "share_of_non_null": 0.22378804303481717
+   },
+   {
+    "value": "P33_61_72",
+    "share_of_non_null": 0.06864356401021086
+   },
+   {
+    "value": "c5a72b57",
+    "share_of_non_null": 0.0647387255073376
+   },
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.04536606403935145
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_b_1",
+  "column": "periodicityofpmts_997M",
+  "distinct": 10,
+  "non_null": 82519,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.49754601970455287
+   },
+   {
+    "value": "a0b598e4",
+    "share_of_non_null": 0.4768356378531005
+   },
+   {
+    "value": "3ecc50a0",
+    "share_of_non_null": 0.01317272385753584
+   },
+   {
+    "value": "d479a207",
+    "share_of_non_null": 0.009391776439365479
+   },
+   {
+    "value": "842dca9f",
+    "share_of_non_null": 0.0019510658151456028
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_b_1",
+  "column": "pmtmethod_731M",
+  "distinct": 10,
+  "non_null": 85791,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.44856686598827383
+   },
+   {
+    "value": "f6e26148",
+    "share_of_non_null": 0.28464524250795536
+   },
+   {
+    "value": "dbcbe8f8",
+    "share_of_non_null": 0.15692788287815737
+   },
+   {
+    "value": "e914c86c",
+    "share_of_non_null": 0.10398526651979811
+   },
+   {
+    "value": "d01fcb1e",
+    "share_of_non_null": 0.0032287769113310254
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_b_1",
+  "column": "purposeofcred_722M",
+  "distinct": 16,
+  "non_null": 85791,
+  "top": [
+   {
+    "value": "60c73645",
+    "share_of_non_null": 0.7010525579606253
+   },
+   {
+    "value": "96a8fdfe",
+    "share_of_non_null": 0.2303738154351855
+   },
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.04536606403935145
+   },
+   {
+    "value": "164ee705",
+    "share_of_non_null": 0.006550803697357532
+   },
+   {
+    "value": "e19fdece",
+    "share_of_non_null": 0.00474408737513259
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_b_1",
+  "column": "subjectrole_326M",
+  "distinct": 6,
+  "non_null": 85791,
+  "top": [
+   {
+    "value": "ab3c25cf",
+    "share_of_non_null": 0.5881269597043979
+   },
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.38200976792437435
+   },
+   {
+    "value": "fa4f56f1",
+    "share_of_non_null": 0.01733282045902251
+   },
+   {
+    "value": "15f04f45",
+    "share_of_non_null": 0.0058630858714783605
+   },
+   {
+    "value": "daf49a8a",
+    "share_of_non_null": 0.005070461936566773
+   }
+  ]
+ },
+ {
+  "family": "credit_bureau_b_1",
+  "column": "subjectrole_43M",
+  "distinct": 6,
+  "non_null": 85791,
+  "top": [
+   {
+    "value": "ab3c25cf",
+    "share_of_non_null": 0.516802461796692
+   },
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.46115559907216375
+   },
+   {
+    "value": "fa4f56f1",
+    "share_of_non_null": 0.013008357520019583
+   },
+   {
+    "value": "daf49a8a",
+    "share_of_non_null": 0.00581646093413062
+   },
+   {
+    "value": "15f04f45",
+    "share_of_non_null": 0.00317049573964635
+   }
+  ]
+ },
+ {
+  "family": "person_1",
+  "column": "contaddr_district_15M",
+  "distinct": 975,
+  "non_null": 2973991,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.48745070176742294
+   },
+   {
+    "value": "P131_33_167",
+    "share_of_non_null": 0.026923417051362968
+   },
+   {
+    "value": "P197_47_166",
+    "share_of_non_null": 0.026010166137019244
+   },
+   {
+    "value": "P123_6_84",
+    "share_of_non_null": 0.018785530958230875
+   },
+   {
+    "value": "P98_137_111",
+    "share_of_non_null": 0.014391099367819203
+   }
+  ]
+ },
+ {
+  "family": "person_1",
+  "column": "contaddr_zipcode_807M",
+  "distinct": 3530,
+  "non_null": 2973991,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.49591407640440066
+   },
+   {
+    "value": "P161_14_174",
+    "share_of_non_null": 0.03292679769373882
+   },
+   {
+    "value": "P144_138_111",
+    "share_of_non_null": 0.030468148693119784
+   },
+   {
+    "value": "P46_103_143",
+    "share_of_non_null": 0.018671542718185764
+   },
+   {
+    "value": "P91_47_168",
+    "share_of_non_null": 0.0180323343278443
+   }
+  ]
+ },
+ {
+  "family": "person_1",
+  "column": "education_927M",
+  "distinct": 6,
+  "non_null": 2973991,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.7513718098003659
+   },
+   {
+    "value": "P97_36_170",
+    "share_of_non_null": 0.13957237933806793
+   },
+   {
+    "value": "P33_146_175",
+    "share_of_non_null": 0.08849690533696974
+   },
+   {
+    "value": "P106_81_188",
+    "share_of_non_null": 0.018470466117752205
+   },
+   {
+    "value": "P17_36_170",
+    "share_of_non_null": 0.0018729041210951882
+   }
+  ]
+ },
+ {
+  "family": "person_1",
+  "column": "empladdr_district_926M",
+  "distinct": 223,
+  "non_null": 2973991,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.8232977167718396
+   },
+   {
+    "value": "P197_47_166",
+    "share_of_non_null": 0.01934134972163668
+   },
+   {
+    "value": "P131_33_167",
+    "share_of_non_null": 0.014108986879919946
+   },
+   {
+    "value": "P62_144_102",
+    "share_of_non_null": 0.007119053151135965
+   },
+   {
+    "value": "P98_137_111",
+    "share_of_non_null": 0.00692503776911228
+   }
+  ]
+ },
+ {
+  "family": "person_1",
+  "column": "empladdr_zipcode_114M",
+  "distinct": 3339,
+  "non_null": 2973991,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.8232536682189018
+   },
+   {
+    "value": "P144_138_111",
+    "share_of_non_null": 0.020683989964999896
+   },
+   {
+    "value": "P161_14_174",
+    "share_of_non_null": 0.015117732367044823
+   },
+   {
+    "value": "P91_47_168",
+    "share_of_non_null": 0.007498677702790627
+   },
+   {
+    "value": "P8_88_79",
+    "share_of_non_null": 0.006496657185579916
+   }
+  ]
+ },
+ {
+  "family": "person_1",
+  "column": "language1_981M",
+  "distinct": 3,
+  "non_null": 2973991,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.5062059703610401
+   },
+   {
+    "value": "P10_39_147",
+    "share_of_non_null": 0.2853919194779002
+   },
+   {
+    "value": "P209_127_106",
+    "share_of_non_null": 0.20840211016105967
+   }
+  ]
+ },
+ {
+  "family": "person_1",
+  "column": "registaddr_district_1083M",
+  "distinct": 991,
+  "non_null": 2973991,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.4866938064035836
+   },
+   {
+    "value": "P131_33_167",
+    "share_of_non_null": 0.026756637797491652
+   },
+   {
+    "value": "P197_47_166",
+    "share_of_non_null": 0.023478551212831513
+   },
+   {
+    "value": "P123_6_84",
+    "share_of_non_null": 0.018770736024419712
+   },
+   {
+    "value": "P98_137_111",
+    "share_of_non_null": 0.014418335495971575
+   }
+  ]
+ },
+ {
+  "family": "person_1",
+  "column": "registaddr_zipcode_184M",
+  "distinct": 3531,
+  "non_null": 2973991,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.5096437749811616
+   },
+   {
+    "value": "P161_14_174",
+    "share_of_non_null": 0.032558269342442527
+   },
+   {
+    "value": "P144_138_111",
+    "share_of_non_null": 0.027412658612618532
+   },
+   {
+    "value": "P46_103_143",
+    "share_of_non_null": 0.018434823777207128
+   },
+   {
+    "value": "P91_47_168",
+    "share_of_non_null": 0.018043094279706965
+   }
+  ]
+ },
+ {
+  "family": "person_2",
+  "column": "addres_district_368M",
+  "distinct": 508,
+  "non_null": 1643410,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9631631789997627
+   },
+   {
+    "value": "P125_48_164",
+    "share_of_non_null": 0.005883498335777438
+   },
+   {
+    "value": "P155_139_77",
+    "share_of_non_null": 0.0024905531790606118
+   },
+   {
+    "value": "P114_74_190",
+    "share_of_non_null": 0.001552868730262077
+   },
+   {
+    "value": "P111_2_12",
+    "share_of_non_null": 0.0015017554961938896
+   }
+  ]
+ },
+ {
+  "family": "person_2",
+  "column": "addres_zip_823M",
+  "distinct": 2027,
+  "non_null": 1643410,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9592067712865323
+   },
+   {
+    "value": "P161_14_174",
+    "share_of_non_null": 0.003631473582368368
+   },
+   {
+    "value": "P144_138_111",
+    "share_of_non_null": 0.002071911452406886
+   },
+   {
+    "value": "P46_103_143",
+    "share_of_non_null": 0.0020055859462945946
+   },
+   {
+    "value": "P85_138_173",
+    "share_of_non_null": 0.0014427318806627682
+   }
+  ]
+ },
+ {
+  "family": "person_2",
+  "column": "conts_role_79M",
+  "distinct": 11,
+  "non_null": 1643410,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9661794683006675
+   },
+   {
+    "value": "P38_92_157",
+    "share_of_non_null": 0.017848863034787422
+   },
+   {
+    "value": "P177_137_98",
+    "share_of_non_null": 0.005585337803713011
+   },
+   {
+    "value": "P7_147_157",
+    "share_of_non_null": 0.005549436841688927
+   },
+   {
+    "value": "P125_105_50",
+    "share_of_non_null": 0.003019331755313647
+   }
+  ]
+ },
+ {
+  "family": "person_2",
+  "column": "empls_economicalst_849M",
+  "distinct": 10,
+  "non_null": 1643410,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9849556714392634
+   },
+   {
+    "value": "P22_131_138",
+    "share_of_non_null": 0.005665050109224113
+   },
+   {
+    "value": "P164_110_33",
+    "share_of_non_null": 0.003971619985274521
+   },
+   {
+    "value": "P28_32_178",
+    "share_of_non_null": 0.0038280161371781842
+   },
+   {
+    "value": "P148_57_109",
+    "share_of_non_null": 0.0011384864397806999
+   }
+  ]
+ },
+ {
+  "family": "person_2",
+  "column": "empls_employer_name_740M",
+  "distinct": 7153,
+  "non_null": 1643410,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9954965589840636
+   },
+   {
+    "value": "P114_118_163",
+    "share_of_non_null": 1.0344344989990325e-05
+   },
+   {
+    "value": "P179_55_175",
+    "share_of_non_null": 4.259436172348957e-06
+   },
+   {
+    "value": "P38_11_59",
+    "share_of_non_null": 3.6509452905848206e-06
+   },
+   {
+    "value": "P133_138_183",
+    "share_of_non_null": 3.6509452905848206e-06
+   }
+  ]
+ },
+ {
+  "family": "static_0",
+  "column": "lastapprcommoditycat_1041M",
+  "distinct": 45,
+  "non_null": 1526659,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.5582425413926752
+   },
+   {
+    "value": "P159_130_59",
+    "share_of_non_null": 0.16801787432556975
+   },
+   {
+    "value": "P12_6_178",
+    "share_of_non_null": 0.10222125569626223
+   },
+   {
+    "value": "P148_110_5",
+    "share_of_non_null": 0.0414748807690519
+   },
+   {
+    "value": "P109_133_183",
+    "share_of_non_null": 0.03693883178889326
+   }
+  ]
+ },
+ {
+  "family": "static_0",
+  "column": "lastapprcommoditytypec_5251766M",
+  "distinct": 214,
+  "non_null": 1526659,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.984933112109515
+   },
+   {
+    "value": "P75_90_70",
+    "share_of_non_null": 0.004686049733437526
+   },
+   {
+    "value": "P111_89_135",
+    "share_of_non_null": 0.0013631072819798003
+   },
+   {
+    "value": "P142_50_170",
+    "share_of_non_null": 0.0008947643186854432
+   },
+   {
+    "value": "P174_113_42",
+    "share_of_non_null": 0.0006714007515758267
+   }
+  ]
+ },
+ {
+  "family": "static_0",
+  "column": "lastcancelreason_561M",
+  "distinct": 74,
+  "non_null": 1526659,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.7035316989583136
+   },
+   {
+    "value": "P94_109_143",
+    "share_of_non_null": 0.19702959207000384
+   },
+   {
+    "value": "P85_114_140",
+    "share_of_non_null": 0.015163176583637866
+   },
+   {
+    "value": "P198_89_166",
+    "share_of_non_null": 0.01206228764904278
+   },
+   {
+    "value": "P30_86_84",
+    "share_of_non_null": 0.011309663782154365
+   }
+  ]
+ },
+ {
+  "family": "static_0",
+  "column": "lastrejectcommoditycat_161M",
+  "distinct": 45,
+  "non_null": 1526659,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.7965007247852991
+   },
+   {
+    "value": "P159_130_59",
+    "share_of_non_null": 0.06785863771804967
+   },
+   {
+    "value": "P12_6_178",
+    "share_of_non_null": 0.04057422122425506
+   },
+   {
+    "value": "P148_110_5",
+    "share_of_non_null": 0.026935943128098678
+   },
+   {
+    "value": "P109_133_183",
+    "share_of_non_null": 0.018144195920634536
+   }
+  ]
+ },
+ {
+  "family": "static_0",
+  "column": "lastrejectcommodtypec_5251769M",
+  "distinct": 187,
+  "non_null": 1526659,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9916078181178639
+   },
+   {
+    "value": "P75_90_70",
+    "share_of_non_null": 0.0022460811484424485
+   },
+   {
+    "value": "P111_89_135",
+    "share_of_non_null": 0.0006157236160792948
+   },
+   {
+    "value": "P79_131_167",
+    "share_of_non_null": 0.0005213999982969347
+   },
+   {
+    "value": "P142_50_170",
+    "share_of_non_null": 0.0005213999982969347
+   }
+  ]
+ },
+ {
+  "family": "static_0",
+  "column": "lastrejectreason_759M",
+  "distinct": 18,
+  "non_null": 1526659,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.6246679841405317
+   },
+   {
+    "value": "P99_56_166",
+    "share_of_non_null": 0.1720063223024919
+   },
+   {
+    "value": "P94_109_143",
+    "share_of_non_null": 0.10580358809662145
+   },
+   {
+    "value": "P45_84_106",
+    "share_of_non_null": 0.04557664809233758
+   },
+   {
+    "value": "P198_131_9",
+    "share_of_non_null": 0.04413952297140357
+   }
+  ]
+ },
+ {
+  "family": "static_0",
+  "column": "lastrejectreasonclient_4145040M",
+  "distinct": 14,
+  "non_null": 1526659,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.6388767891192467
+   },
+   {
+    "value": "P94_109_143",
+    "share_of_non_null": 0.31796753564482966
+   },
+   {
+    "value": "P30_86_84",
+    "share_of_non_null": 0.020874340635335067
+   },
+   {
+    "value": "P52_67_90",
+    "share_of_non_null": 0.007879297210444506
+   },
+   {
+    "value": "P69_72_116",
+    "share_of_non_null": 0.005559198223047845
+   }
+  ]
+ },
+ {
+  "family": "static_0",
+  "column": "previouscontdistrict_112M",
+  "distinct": 223,
+  "non_null": 1526659,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.31993261101529546
+   },
+   {
+    "value": "P131_33_167",
+    "share_of_non_null": 0.03956286243358864
+   },
+   {
+    "value": "P197_47_166",
+    "share_of_non_null": 0.03319667325840282
+   },
+   {
+    "value": "P123_6_84",
+    "share_of_non_null": 0.027400355940652103
+   },
+   {
+    "value": "P98_137_111",
+    "share_of_non_null": 0.021174342141892854
+   }
+  ]
+ },
+ {
+  "family": "static_cb_0",
+  "column": "description_5085714M",
+  "distinct": 2,
+  "non_null": 1500476,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.8771383214393299
+   },
+   {
+    "value": "2fc785b2",
+    "share_of_non_null": 0.12286167856067008
+   }
+  ]
+ },
+ {
+  "family": "static_cb_0",
+  "column": "education_1103M",
+  "distinct": 5,
+  "non_null": 1500476,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.5731261279753891
+   },
+   {
+    "value": "6b2ae0fa",
+    "share_of_non_null": 0.3015369789320189
+   },
+   {
+    "value": "717ddd49",
+    "share_of_non_null": 0.09019937673111733
+   },
+   {
+    "value": "39a0853f",
+    "share_of_non_null": 0.03141669710145314
+   },
+   {
+    "value": "c8e1a1d0",
+    "share_of_non_null": 0.0037208192600214863
+   }
+  ]
+ },
+ {
+  "family": "static_cb_0",
+  "column": "education_88M",
+  "distinct": 5,
+  "non_null": 1500476,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.9896592814546851
+   },
+   {
+    "value": "6b2ae0fa",
+    "share_of_non_null": 0.007779531295402259
+   },
+   {
+    "value": "717ddd49",
+    "share_of_non_null": 0.0021859729845728954
+   },
+   {
+    "value": "a34a13c8",
+    "share_of_non_null": 0.00029124091288364493
+   },
+   {
+    "value": "c8e1a1d0",
+    "share_of_non_null": 8.397335245615392e-05
+   }
+  ]
+ },
+ {
+  "family": "static_cb_0",
+  "column": "maritalst_385M",
+  "distinct": 6,
+  "non_null": 1500476,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.4409214142712046
+   },
+   {
+    "value": "3439d993",
+    "share_of_non_null": 0.36677427696277715
+   },
+   {
+    "value": "a7fcb6e5",
+    "share_of_non_null": 0.13399081358182338
+   },
+   {
+    "value": "b6cabe76",
+    "share_of_non_null": 0.037254844462690506
+   },
+   {
+    "value": "38c061ee",
+    "share_of_non_null": 0.017894987990477687
+   }
+  ]
+ },
+ {
+  "family": "static_cb_0",
+  "column": "maritalst_893M",
+  "distinct": 6,
+  "non_null": 1500476,
+  "top": [
+   {
+    "value": "a55475b1",
+    "share_of_non_null": 0.985889144511475
+   },
+   {
+    "value": "46b968c3",
+    "share_of_non_null": 0.00925639597034541
+   },
+   {
+    "value": "1a19667c",
+    "share_of_non_null": 0.003546208003326944
+   },
+   {
+    "value": "977b2a70",
+    "share_of_non_null": 0.0007970803931552388
+   },
+   {
+    "value": "e18430ff",
+    "share_of_non_null": 0.00045185661083549486
+   }
+  ]
+ },
+ {
+  "family": "tax_registry_a_1",
+  "column": "name_4527232M",
+  "distinct": 147037,
+  "non_null": 3275770,
+  "top": [
+   {
+    "value": "5e180ef0",
+    "share_of_non_null": 0.062388690292664015
+   },
+   {
+    "value": "P114_118_163",
+    "share_of_non_null": 0.004808335139524448
+   },
+   {
+    "value": "74ca9587",
+    "share_of_non_null": 0.004028365849861254
+   },
+   {
+    "value": "7444479d",
+    "share_of_non_null": 0.0037588109055275553
+   },
+   {
+    "value": "P157_88_183",
+    "share_of_non_null": 0.0030603491698135096
+   }
+  ]
+ },
+ {
+  "family": "tax_registry_b_1",
+  "column": "name_4917606M",
+  "distinct": 55857,
+  "non_null": 1107933,
+  "top": [
+   {
+    "value": "5e180ef0",
+    "share_of_non_null": 0.07697577380581677
+   },
+   {
+    "value": "P114_118_163",
+    "share_of_non_null": 0.006503100819273367
+   },
+   {
+    "value": "74ca9587",
+    "share_of_non_null": 0.006456166573249465
+   },
+   {
+    "value": "7444479d",
+    "share_of_non_null": 0.00466905489772396
+   },
+   {
+    "value": "3613fb71",
+    "share_of_non_null": 0.003681630567913403
+   }
+  ]
+ },
+ {
+  "family": "tax_registry_c_1",
+  "column": "employername_160M",
+  "distinct": 152835,
+  "non_null": 3343800,
+  "top": [
+   {
+    "value": "5e180ef0",
+    "share_of_non_null": 0.06252915844249057
+   },
+   {
+    "value": "6a3d9351",
+    "share_of_non_null": 0.005419283449967103
+   },
+   {
+    "value": "f10df922",
+    "share_of_non_null": 0.004187451402595849
+   },
+   {
+    "value": "P114_118_163",
+    "share_of_non_null": 0.0035058915006878403
+   },
+   {
+    "value": "P157_88_183",
+    "share_of_non_null": 0.003255876547640409
+   }
+  ]
+ }
+]

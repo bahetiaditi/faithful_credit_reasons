@@ -26,10 +26,20 @@ def test_weekly_rates_add_up_to_the_base_table(base):
     assert eda.first_week_on_or_after(weekly, date(2030, 1, 1)) is None
 
 
-def test_missingness_counts_nulls_and_empty_strings(families):
+def test_missingness_counts_nulls_and_empty_strings(tmp_path):
+    """The real parquet uses nulls (C4: zero empty strings), but an empty
+    string is still counted as missing if a later data version introduces one."""
+    pl.DataFrame({"case_id": [1, 2, 3], "date_decision": ["2019-01-01"] * 3, "MONTH": [201901] * 3,
+                  "WEEK_NUM": [0] * 3, "target": [0] * 3}).write_parquet(tmp_path / "train_base.parquet")
+    pl.DataFrame({"case_id": [1, 2, 3, 4], "num_group1": [0] * 4, "kind_1L": ["", None, "A", "B"]}
+                 ).write_parquet(tmp_path / "train_t_1.parquet")
+    row = eda.column_missingness(discover_families(tmp_path)["t_1"]).row(0, named=True)
+    assert (row["nulls"], row["empty_strings"], row["missing_share"]) == (1, 1, 0.5)
+
+
+def test_missingness_on_fixtures_uses_nulls(families):
     person = eda.column_missingness(families["person_1"]).filter(pl.col("column") == "empl_employedtotal_800L").row(0, named=True)
-    assert person["empty_strings"] > 0, "empty strings are a second form of missing"
-    assert person["missing_share"] == pytest.approx((person["nulls"] + person["empty_strings"]) / person["rows"])
+    assert person["empty_strings"] == 0 and person["missing_share"] > 0.5
     cb = eda.column_missingness(families["static_cb_0"]).filter(pl.col("column") == "riskassesment_940T")
     assert cb["missing_share"][0] > 0.9
 
@@ -49,7 +59,8 @@ def test_placeholder_hash_is_detected(families):
 def test_protected_inventory_finds_names_and_values(families, synthetic):
     inventory = eda.protected_inventory(families, read_feature_definitions(synthetic.root / "feature_definitions.csv"))
     by_column = {p["column"]: p for p in inventory}
-    assert {"birth_259D", "familystate_447L", "incometype_1044T"} <= set(by_column)
+    assert {"birth_259D", "familystate_447L", "incometype_1044T", "sex_738L"} <= set(by_column)
+    assert by_column["sex_738L"]["matched"] == "sex"
     # income type is found only through its values
     assert by_column["incometype_1044T"]["matched"].startswith("value:")
     assert "HANDICAPPED_2" in by_column["incometype_1044T"]["matched"]
@@ -81,7 +92,8 @@ def test_chunk_containment_detects_cases_spanning_chunks(tmp_path):
 
 
 def test_chunk_containment_is_zero_when_chunks_split_by_case(families):
-    assert eda.chunk_containment(families["static_0"])["cases_spanning_chunks"] == 0
+    for key in ("static_0", "applprev_1", "credit_bureau_a_2"):
+        assert eda.chunk_containment(families[key])["cases_spanning_chunks"] == 0, key
 
 
 def test_date_checks_count_unparseable_values_and_ranges(tmp_path):

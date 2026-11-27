@@ -80,12 +80,28 @@ class FeaturesConfig(_Strict):
     max_missing_share: float = Field(gt=0, le=1)
     max_abs_spearman: float = Field(gt=0, le=1)
     local_sample_cases: int = Field(gt=0)
+    masked_missing_values: tuple[str, ...] = ()
 
 
 class ProtectedConfig(_Strict):
     columns: tuple[str, ...]
+    disability_recode_column: str
     disability_income_values: tuple[str, ...]
     disability_recode_value: str
+    reviewed_not_protected: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def _lists_are_consistent(self) -> ProtectedConfig:
+        if len(set(self.columns)) != len(self.columns):
+            raise ValueError("protected.columns has duplicates")
+        if self.disability_recode_column in self.columns:
+            raise ValueError("the recode column is kept as a feature, so it cannot also be excluded")
+        overlap = set(self.columns) & set(self.reviewed_not_protected)
+        if overlap:
+            raise ValueError(f"columns both protected and reviewed-not-protected: {sorted(overlap)}")
+        if self.disability_recode_value in self.disability_income_values:
+            raise ValueError("disability codes cannot be recoded to one of themselves")
+        return self
 
 
 class ModelConfig(_Strict):

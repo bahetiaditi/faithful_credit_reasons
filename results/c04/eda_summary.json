@@ -1,0 +1,708 @@
+{
+ "commit": "c531cdc",
+ "mode": "real",
+ "splits": {
+  "train": {
+   "weeks": [
+    0,
+    63
+   ],
+   "applications": 1282082,
+   "defaults": 42524,
+   "default_rate": 0.033167925296509894
+  },
+  "validation": {
+   "weeks": [
+    64,
+    77
+   ],
+   "applications": 92870,
+   "defaults": 2255,
+   "default_rate": 0.024281253364918702
+  },
+  "test": {
+   "weeks": [
+    78,
+    91
+   ],
+   "applications": 151707,
+   "defaults": 3215,
+   "default_rate": 0.021192166478804536
+  }
+ },
+ "pandemic_week": 63,
+ "missingness_bands": {
+  "under 10%": 173,
+  "10-50%": 89,
+  "50-95%": 140,
+  "over 95% (screened out)": 62
+ },
+ "columns_with_empty_strings": 0,
+ "placeholder_candidates": [
+  {
+   "value": "a55475b1",
+   "columns": 53,
+   "median_share": 0.8232536682189018,
+   "examples": [
+    "applprev_1.cancelreason_3545846M",
+    "applprev_1.district_544M",
+    "applprev_1.education_1138M",
+    "applprev_1.postype_4733339M",
+    "applprev_1.profession_152M"
+   ]
+  },
+  {
+   "value": "5e180ef0",
+   "columns": 3,
+   "median_share": 0.06252915844249057,
+   "examples": [
+    "tax_registry_a_1.name_4527232M",
+    "tax_registry_b_1.name_4917606M",
+    "tax_registry_c_1.employername_160M"
+   ]
+  }
+ ],
+ "protected_inventory": [
+  {
+   "family": "applprev_1",
+   "column": "familystate_726L",
+   "matched": "family",
+   "description": "Family State in previous application of applicant.",
+   "dtype": "String",
+   "values": [
+    {
+     "value": "MARRIED",
+     "rows": 2986750
+    },
+    {
+     "value": null,
+     "rows": 2393892
+    },
+    {
+     "value": "SINGLE",
+     "rows": 593164
+    },
+    {
+     "value": "WIDOWED",
+     "rows": 359309
+    },
+    {
+     "value": "DIVORCED",
+     "rows": 130820
+    },
+    {
+     "value": "LIVING_WITH_PARTNER",
+     "rows": 62044
+    }
+   ]
+  },
+  {
+   "family": "person_1",
+   "column": "birth_259D",
+   "matched": "birth",
+   "description": "Date of birth of the person.",
+   "dtype": "String",
+   "values": null
+  },
+  {
+   "family": "person_1",
+   "column": "birthdate_87D",
+   "matched": "birthdate",
+   "description": "Birth date of the person.",
+   "dtype": "String",
+   "values": null
+  },
+  {
+   "family": "person_1",
+   "column": "familystate_447L",
+   "matched": "family",
+   "description": "Family state of the person.",
+   "dtype": "String",
+   "values": [
+    {
+     "value": null,
+     "rows": 2245378
+    },
+    {
+     "value": "MARRIED",
+     "rows": 484846
+    },
+    {
+     "value": "SINGLE",
+     "rows": 183334
+    },
+    {
+     "value": "WIDOWED",
+     "rows": 32995
+    },
+    {
+     "value": "DIVORCED",
+     "rows": 19296
+    },
+    {
+     "value": "LIVING_WITH_PARTNER",
+     "rows": 8142
+    }
+   ]
+  },
+  {
+   "family": "person_1",
+   "column": "gender_992L",
+   "matched": "gender",
+   "description": "Gender of a person.",
+   "dtype": "String",
+   "values": [
+    {
+     "value": null,
+     "rows": 2949075
+    },
+    {
+     "value": "F",
+     "rows": 20981
+    },
+    {
+     "value": "M",
+     "rows": 3935
+    }
+   ]
+  },
+  {
+   "family": "person_1",
+   "column": "incometype_1044T",
+   "matched": "value: HANDICAPPED, HANDICAPPED_2, HANDICAPPED_3",
+   "description": "Type of income of the person",
+   "dtype": "String",
+   "values": [
+    {
+     "value": null,
+     "rows": 1447332
+    },
+    {
+     "value": "PRIVATE_SECTOR_EMPLOYEE",
+     "rows": 490562
+    },
+    {
+     "value": "SALARIED_GOVT",
+     "rows": 373646
+    },
+    {
+     "value": "RETIRED_PENSIONER",
+     "rows": 311028
+    },
+    {
+     "value": "EMPLOYED",
+     "rows": 298158
+    },
+    {
+     "value": "SELFEMPLOYED",
+     "rows": 29199
+    },
+    {
+     "value": "OTHER",
+     "rows": 11436
+    },
+    {
+     "value": "HANDICAPPED_2",
+     "rows": 7371
+    },
+    {
+     "value": "HANDICAPPED_3",
+     "rows": 5258
+    },
+    {
+     "value": "HANDICAPPED",
+     "rows": 1
+    }
+   ]
+  },
+  {
+   "family": "person_1",
+   "column": "maritalst_703L",
+   "matched": "marital",
+   "description": "Marital status of the client.",
+   "dtype": "String",
+   "values": [
+    {
+     "value": null,
+     "rows": 2962646
+    },
+    {
+     "value": "MARRIED",
+     "rows": 5970
+    },
+    {
+     "value": "SINGLE",
+     "rows": 4059
+    },
+    {
+     "value": "DIVORCED",
+     "rows": 549
+    },
+    {
+     "value": "LIVING_WITH_PARTNER",
+     "rows": 485
+    },
+    {
+     "value": "WIDOWED",
+     "rows": 282
+    }
+   ]
+  },
+  {
+   "family": "person_1",
+   "column": "sex_738L",
+   "matched": "sex",
+   "description": "Gender of the client.",
+   "dtype": "String",
+   "values": [
+    {
+     "value": null,
+     "rows": 1447332
+    },
+    {
+     "value": "F",
+     "rows": 952776
+    },
+    {
+     "value": "M",
+     "rows": 573883
+    }
+   ]
+  },
+  {
+   "family": "static_0",
+   "column": "equalitydataagreement_891L",
+   "matched": "family",
+   "description": "Flag indicating sudden changes in client's social-demographic data (e.g. education, family status, housing type).",
+   "dtype": "Boolean",
+   "values": [
+    {
+     "value": null,
+     "rows": 1448632
+    },
+    {
+     "value": "true",
+     "rows": 73064
+    },
+    {
+     "value": "false",
+     "rows": 4963
+    }
+   ]
+  },
+  {
+   "family": "static_cb_0",
+   "column": "birthdate_574D",
+   "matched": "birthdate",
+   "description": "Client's date of birth (credit bureau data).",
+   "dtype": "String",
+   "values": null
+  },
+  {
+   "family": "static_cb_0",
+   "column": "dateofbirth_337D",
+   "matched": "birth",
+   "description": "Client's date of birth.",
+   "dtype": "String",
+   "values": null
+  },
+  {
+   "family": "static_cb_0",
+   "column": "dateofbirth_342D",
+   "matched": "birth",
+   "description": "Client's date of birth.",
+   "dtype": "String",
+   "values": null
+  },
+  {
+   "family": "static_cb_0",
+   "column": "maritalst_385M",
+   "matched": "marital",
+   "description": "Marital status of the client.",
+   "dtype": "String",
+   "values": [
+    {
+     "value": "a55475b1",
+     "rows": 661592
+    },
+    {
+     "value": "3439d993",
+     "rows": 550336
+    },
+    {
+     "value": "a7fcb6e5",
+     "rows": 201050
+    },
+    {
+     "value": "b6cabe76",
+     "rows": 55900
+    },
+    {
+     "value": "38c061ee",
+     "rows": 26851
+    },
+    {
+     "value": "ecd83604",
+     "rows": 4747
+    }
+   ]
+  },
+  {
+   "family": "static_cb_0",
+   "column": "maritalst_893M",
+   "matched": "marital",
+   "description": "Marital status of the client",
+   "dtype": "String",
+   "values": [
+    {
+     "value": "a55475b1",
+     "rows": 1479303
+    },
+    {
+     "value": "46b968c3",
+     "rows": 13889
+    },
+    {
+     "value": "1a19667c",
+     "rows": 5321
+    },
+    {
+     "value": "977b2a70",
+     "rows": 1196
+    },
+    {
+     "value": "e18430ff",
+     "rows": 678
+    },
+    {
+     "value": "ecd83604",
+     "rows": 89
+    }
+   ]
+  }
+ ],
+ "sex_or_gender_columns": [
+  "person_1.gender_992L",
+  "person_1.sex_738L"
+ ],
+ "coverage": [
+  {
+   "family": "applprev_1",
+   "mean": 0.8121749842899686,
+   "min": 0.754372492684929,
+   "max": 0.8683591588267847,
+   "first_month": 0.754372492684929,
+   "last_month": 0.8624301675977654
+  },
+  {
+   "family": "applprev_2",
+   "mean": 0.8121749842899686,
+   "min": 0.754372492684929,
+   "max": 0.8683591588267847,
+   "first_month": 0.754372492684929,
+   "last_month": 0.8624301675977654
+  },
+  {
+   "family": "credit_bureau_a_1",
+   "mean": 0.9120084511753938,
+   "min": 0.5481470693376054,
+   "max": 0.9697603213274512,
+   "first_month": 0.5481470693376054,
+   "last_month": 0.9678770949720671
+  },
+  {
+   "family": "credit_bureau_a_2",
+   "mean": 0.9114070162383126,
+   "min": 0.5465582756292285,
+   "max": 0.9695463225126754,
+   "first_month": 0.5465582756292285,
+   "last_month": 0.9678770949720671
+  },
+  {
+   "family": "credit_bureau_b_1",
+   "mean": 0.026108494066595055,
+   "min": 0.00035446268520675304,
+   "max": 0.040800696257615315,
+   "first_month": 0.0037601451098253653,
+   "last_month": 0.03887337057728119
+  },
+  {
+   "family": "credit_bureau_b_2",
+   "mean": 0.026080666821052666,
+   "min": 0.00030382515874864544,
+   "max": 0.040800696257615315,
+   "first_month": 0.0037601451098253653,
+   "last_month": 0.03887337057728119
+  },
+  {
+   "family": "debitcard_1",
+   "mean": 0.07584977699997755,
+   "min": 0.062113625000991976,
+   "max": 0.09061981184283342,
+   "first_month": 0.07491162334997153,
+   "last_month": 0.07960893854748603
+  },
+  {
+   "family": "deposit_1",
+   "mean": 0.0712204927854617,
+   "min": 0.058399663521438605,
+   "max": 0.08411732152739347,
+   "first_month": 0.07010552238213137,
+   "last_month": 0.0728584729981378
+  },
+  {
+   "family": "other_1",
+   "mean": 0.05403064091648257,
+   "min": 0.0,
+   "max": 0.14163669064748202,
+   "first_month": 0.0,
+   "last_month": 0.12011173184357542
+  },
+  {
+   "family": "person_1",
+   "mean": 1.0,
+   "min": 1.0,
+   "max": 1.0,
+   "first_month": 1.0,
+   "last_month": 1.0
+  },
+  {
+   "family": "person_2",
+   "mean": 0.8986047296849812,
+   "min": 0.4561219739292365,
+   "max": 0.995458697983556,
+   "first_month": 0.995458697983556,
+   "last_month": 0.4561219739292365
+  },
+  {
+   "family": "static_0",
+   "mean": 1.0,
+   "min": 1.0,
+   "max": 1.0,
+   "first_month": 1.0,
+   "last_month": 1.0
+  },
+  {
+   "family": "static_cb_0",
+   "mean": 0.9841000803520217,
+   "min": 0.6856174449549179,
+   "max": 1.0,
+   "first_month": 0.6856174449549179,
+   "last_month": 1.0
+  },
+  {
+   "family": "tax_registry_a_1",
+   "mean": 0.23621251626337328,
+   "min": 0.0,
+   "max": 0.696269836043985,
+   "first_month": 0.0,
+   "last_month": 0.011871508379888268
+  },
+  {
+   "family": "tax_registry_b_1",
+   "mean": 0.2003565393975629,
+   "min": 0.0,
+   "max": 0.7200884543761639,
+   "first_month": 0.0,
+   "last_month": 0.7200884543761639
+  },
+  {
+   "family": "tax_registry_c_1",
+   "mean": 0.26685337331170755,
+   "min": 0.0,
+   "max": 0.6723023792876968,
+   "first_month": 0.4742814018456487,
+   "last_month": 0.0
+  }
+ ],
+ "chunk_containment": [
+  {
+   "family": "applprev_1",
+   "chunks": 2,
+   "cases_spanning_chunks": 0,
+   "chunk_ranges": [
+    {
+     "chunk": 0,
+     "min_case_id": 2,
+     "max_case_id": 2651092,
+     "cases": 782997
+    },
+    {
+     "chunk": 1,
+     "min_case_id": 40704,
+     "max_case_id": 2703454,
+     "cases": 438525
+    }
+   ]
+  },
+  {
+   "family": "credit_bureau_a_1",
+   "chunks": 4,
+   "cases_spanning_chunks": 0,
+   "chunk_ranges": [
+    {
+     "chunk": 0,
+     "min_case_id": 388,
+     "max_case_id": 2588481,
+     "cases": 335275
+    },
+    {
+     "chunk": 1,
+     "min_case_id": 19694,
+     "max_case_id": 2651092,
+     "cases": 549263
+    },
+    {
+     "chunk": 2,
+     "min_case_id": 40626,
+     "max_case_id": 2683578,
+     "cases": 325127
+    },
+    {
+     "chunk": 3,
+     "min_case_id": 51903,
+     "max_case_id": 2703454,
+     "cases": 176608
+    }
+   ]
+  },
+  {
+   "family": "credit_bureau_a_2",
+   "chunks": 11,
+   "cases_spanning_chunks": 0,
+   "chunk_ranges": [
+    {
+     "chunk": 0,
+     "min_case_id": 388,
+     "max_case_id": 2548729,
+     "cases": 98303
+    },
+    {
+     "chunk": 1,
+     "min_case_id": 6683,
+     "max_case_id": 2570525,
+     "cases": 118481
+    },
+    {
+     "chunk": 2,
+     "min_case_id": 13927,
+     "max_case_id": 2593511,
+     "cases": 156749
+    },
+    {
+     "chunk": 3,
+     "min_case_id": 21161,
+     "max_case_id": 2619253,
+     "cases": 190486
+    },
+    {
+     "chunk": 4,
+     "min_case_id": 29427,
+     "max_case_id": 2640040,
+     "cases": 190313
+    },
+    {
+     "chunk": 5,
+     "min_case_id": 36830,
+     "max_case_id": 2658153,
+     "cases": 231250
+    },
+    {
+     "chunk": 6,
+     "min_case_id": 42865,
+     "max_case_id": 2677343,
+     "cases": 150426
+    },
+    {
+     "chunk": 7,
+     "min_case_id": 49417,
+     "max_case_id": 2681255,
+     "cases": 45056
+    },
+    {
+     "chunk": 8,
+     "min_case_id": 51083,
+     "max_case_id": 2688744,
+     "cases": 77457
+    },
+    {
+     "chunk": 9,
+     "min_case_id": 53716,
+     "max_case_id": 2700533,
+     "cases": 103033
+    },
+    {
+     "chunk": 10,
+     "min_case_id": 56408,
+     "max_case_id": 2703454,
+     "cases": 23734
+    }
+   ]
+  },
+  {
+   "family": "static_0",
+   "chunks": 2,
+   "cases_spanning_chunks": 0,
+   "chunk_ranges": [
+    {
+     "chunk": 0,
+     "min_case_id": 0,
+     "max_case_id": 2651092,
+     "cases": 1003757
+    },
+    {
+     "chunk": 1,
+     "min_case_id": 40626,
+     "max_case_id": 2703454,
+     "cases": 522902
+    }
+   ]
+  }
+ ],
+ "date_columns": {
+  "count": 57,
+  "with_unparseable": 0,
+  "after_last_decision": [
+   "approvaldate_319D",
+   "creationdate_885D",
+   "dateactivated_425D",
+   "dtlastpmt_581D",
+   "dtlastpmtallstes_3545839D",
+   "firstnonzeroinstldate_307D",
+   "dateofcredend_289D",
+   "dateofcredend_353D",
+   "dateofcredstart_181D",
+   "dateofcredstart_739D",
+   "dateofrealrepmt_138D",
+   "lastupdate_1112D",
+   "lastupdate_388D",
+   "numberofoverdueinstlmaxdat_148D",
+   "numberofoverdueinstlmaxdat_641D",
+   "overdueamountmax2date_1002D",
+   "overdueamountmax2date_1142D",
+   "refreshdate_3813885D",
+   "contractdate_551D",
+   "contractmaturitydate_151D",
+   "lastupdate_260D",
+   "pmts_date_1107D",
+   "datelastunpaid_3546854D",
+   "dtlastpmtallstes_4499206D",
+   "firstdatedue_489D",
+   "lastactivateddate_801D",
+   "lastapplicationdate_877D",
+   "lastapprdate_640D",
+   "lastdelinqdate_224D",
+   "lastrejectdate_50D",
+   "lastrepayingdate_696D",
+   "maxdpdinstldate_3546855D",
+   "payvacationpostpone_4187118D",
+   "assignmentdate_4527235D",
+   "responsedate_4527233D",
+   "responsedate_4917613D",
+   "recorddate_4527225D",
+   "deductiondate_4917603D"
+  ]
+ },
+ "elapsed_s": 112.5,
+ "peak_memory_gb": 16.53
+}

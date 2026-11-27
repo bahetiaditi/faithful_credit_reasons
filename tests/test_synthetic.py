@@ -105,9 +105,11 @@ def test_planted_leakage_matches_manifest(synthetic):
 
 def test_realistic_data_quirks_are_present(synthetic):
     person = pl.read_parquet(synthetic.train_dir / "train_person_1.parquet").filter(pl.col("num_group1") == 0)
-    # dominant masked hash, empty strings as missing, disability-coded income types
+    # dominant masked hash, nulls for missing categories, disability-coded income types
     assert person["education_927M"].value_counts(sort=True)["education_927M"][0] == "a55475b1"
-    assert (person["empl_employedtotal_800L"] == "").mean() > 0.5
+    assert person["empl_employedtotal_800L"].null_count() / person.height > 0.5
+    assert (person["empl_employedtotal_800L"] == "").sum() == 0
+    assert set(person["sex_738L"].drop_nulls().unique()) == {"F", "M"}
     assert person["incometype_1044T"].str.starts_with("HANDICAPPED").any()
     cb = pl.read_parquet(synthetic.train_dir / "train_static_cb_0.parquet")
     assert cb["riskassesment_940T"].null_count() / cb.height > 0.9
@@ -135,3 +137,16 @@ def test_different_seeds_differ(tmp_path):
 def test_invalid_default_rate_rejected(tmp_path):
     with pytest.raises(ValueError):
         generate_synthetic_dataset(tmp_path, SyntheticSpec(n_cases=10, default_rate=1.0))
+
+
+def test_no_case_spans_two_chunks(synthetic):
+    """Real chunked families never split a case across files (C4); per-chunk
+    aggregation in C5 depends on the fixtures sharing that property."""
+    seen: dict[tuple[str, int], str] = {}
+    for path in sorted(synthetic.train_dir.glob("*.parquet")):
+        t = parse_table_name(path.stem)
+        if t.chunk is None:
+            continue
+        for cid in pl.read_parquet(path)["case_id"].unique().to_list():
+            owner = seen.setdefault((t.family, cid), path.stem)
+            assert owner == path.stem, f"case {cid} in both {owner} and {path.stem}"

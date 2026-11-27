@@ -1,0 +1,3830 @@
+{
+ "split": "train",
+ "families": {
+  "applprev_1": {
+   "key": "applprev_1",
+   "family": "applprev",
+   "depth": 1,
+   "files": [
+    "train_applprev_1_0.parquet",
+    "train_applprev_1_1.parquet"
+   ],
+   "rows": 6525979,
+   "cases": 1221522,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "actualdpd_943P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "annuity_853A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "approvaldate_319D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "byoccupationinc_3656910L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "cancelreason_3545846M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "childnum_21L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "creationdate_885D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credacc_actualbalance_314A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credacc_credlmt_575A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credacc_maxhisbal_375A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credacc_minhisbal_90A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credacc_status_367L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credacc_transactions_402L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credamount_590A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credtype_587L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "currdebt_94A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dateactivated_425D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "district_544M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "downpmt_134A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dtlastpmt_581D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dtlastpmtallstes_3545839D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "education_1138M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "employedfrom_700D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "familystate_726L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "firstnonzeroinstldate_307D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "inittransactioncode_279L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "isbidproduct_390L",
+     "dtype": "Boolean",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "isdebitcard_527L",
+     "dtype": "Boolean",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "mainoccupationinc_437A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdpdtolerance_577P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group1",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "outstandingdebt_522A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmtnum_8L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "postype_4733339M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "profession_152M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "rejectreason_755M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "rejectreasonclient_4145042M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "revolvingaccount_394A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "status_219L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "tenor_203L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "applprev_2": {
+   "key": "applprev_2",
+   "family": "applprev",
+   "depth": 2,
+   "files": [
+    "train_applprev_2.parquet"
+   ],
+   "rows": 14075487,
+   "cases": 1221522,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "cacccardblochreas_147M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "conts_type_509L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credacc_cards_status_52L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group1",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group2",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "base": {
+   "key": "base",
+   "family": "base",
+   "depth": 0,
+   "files": [
+    "train_base.parquet"
+   ],
+   "rows": 1526659,
+   "cases": 1526659,
+   "duplicate_keys": 0,
+   "orphan_cases": null,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "date_decision",
+     "dtype": "String",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "MONTH",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "WEEK_NUM",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "target",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "credit_bureau_a_1": {
+   "key": "credit_bureau_a_1",
+   "family": "credit_bureau_a",
+   "depth": 1,
+   "files": [
+    "train_credit_bureau_a_1_0.parquet",
+    "train_credit_bureau_a_1_1.parquet",
+    "train_credit_bureau_a_1_2.parquet",
+    "train_credit_bureau_a_1_3.parquet"
+   ],
+   "rows": 15940537,
+   "cases": 1386273,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "annualeffectiverate_199L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "annualeffectiverate_63L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "classificationofcontr_13M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "classificationofcontr_400M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "contractst_545M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "contractst_964M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "contractsum_5085717L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credlmt_230A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credlmt_935A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dateofcredend_289D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dateofcredend_353D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dateofcredstart_181D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dateofcredstart_739D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dateofrealrepmt_138D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "debtoutstand_525A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "debtoverdue_47A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "description_351M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dpdmax_139P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dpdmax_757P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dpdmaxdatemonth_442T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dpdmaxdatemonth_89T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dpdmaxdateyear_596T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dpdmaxdateyear_896T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "financialinstitution_382M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "financialinstitution_591M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "instlamount_768A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "instlamount_852A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "interestrate_508L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastupdate_1112D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastupdate_388D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "monthlyinstlamount_332A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "monthlyinstlamount_674A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "nominalrate_281L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "nominalrate_498L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group1",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numberofcontrsvalue_258L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numberofcontrsvalue_358L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numberofinstls_229L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numberofinstls_320L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numberofoutstandinstls_520L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numberofoutstandinstls_59L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numberofoverdueinstlmax_1039L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numberofoverdueinstlmax_1151L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numberofoverdueinstlmaxdat_148D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numberofoverdueinstlmaxdat_641D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numberofoverdueinstls_725L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numberofoverdueinstls_834L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "outstandingamount_354A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "outstandingamount_362A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamount_31A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamount_659A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamountmax2_14A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamountmax2_398A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamountmax2date_1002D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamountmax2date_1142D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamountmax_155A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamountmax_35A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamountmaxdatemonth_284T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamountmaxdatemonth_365T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamountmaxdateyear_2T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamountmaxdateyear_994T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "periodicityofpmts_1102L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "periodicityofpmts_837L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "prolongationcount_1120L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "prolongationcount_599L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "purposeofcred_426M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "purposeofcred_874M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "refreshdate_3813885D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "residualamount_488A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "residualamount_856A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "subjectrole_182M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "subjectrole_93M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "totalamount_6A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "totalamount_996A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "totaldebtoverduevalue_178A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "totaldebtoverduevalue_718A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "totaloutstanddebtvalue_39A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "totaloutstanddebtvalue_668A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "credit_bureau_a_2": {
+   "key": "credit_bureau_a_2",
+   "family": "credit_bureau_a",
+   "depth": 2,
+   "files": [
+    "train_credit_bureau_a_2_0.parquet",
+    "train_credit_bureau_a_2_1.parquet",
+    "train_credit_bureau_a_2_2.parquet",
+    "train_credit_bureau_a_2_3.parquet",
+    "train_credit_bureau_a_2_4.parquet",
+    "train_credit_bureau_a_2_5.parquet",
+    "train_credit_bureau_a_2_6.parquet",
+    "train_credit_bureau_a_2_7.parquet",
+    "train_credit_bureau_a_2_8.parquet",
+    "train_credit_bureau_a_2_9.parquet",
+    "train_credit_bureau_a_2_10.parquet"
+   ],
+   "rows": 188298452,
+   "cases": 1385288,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "collater_typofvalofguarant_298M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "collater_typofvalofguarant_407M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "collater_valueofguarantee_1124L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "collater_valueofguarantee_876L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "collaterals_typeofguarante_359M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "collaterals_typeofguarante_669M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group1",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group2",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmts_dpd_1073P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmts_dpd_303P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmts_month_158T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmts_month_706T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmts_overdue_1140A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmts_overdue_1152A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmts_year_1139T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmts_year_507T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "subjectroles_name_541M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "subjectroles_name_838M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "credit_bureau_b_1": {
+   "key": "credit_bureau_b_1",
+   "family": "credit_bureau_b",
+   "depth": 1,
+   "files": [
+    "train_credit_bureau_b_1.parquet"
+   ],
+   "rows": 85791,
+   "cases": 36500,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "amount_1115A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "classificationofcontr_1114M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "contractdate_551D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "contractmaturitydate_151D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "contractst_516M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "contracttype_653M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credlmt_1052A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credlmt_228A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credlmt_3940954A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credor_3940957M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credquantity_1099L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credquantity_984L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "debtpastduevalue_732A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "debtvalue_227A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dpd_550P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dpd_733P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dpdmax_851P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dpdmaxdatemonth_804T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dpdmaxdateyear_742T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "installmentamount_644A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "installmentamount_833A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "instlamount_892A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "interesteffectiverate_369L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "interestrateyearly_538L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastupdate_260D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdebtpduevalodued_3940955A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group1",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numberofinstls_810L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamountmax_950A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamountmaxdatemonth_494T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "overdueamountmaxdateyear_432T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "periodicityofpmts_997L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "periodicityofpmts_997M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmtdaysoverdue_1135P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmtmethod_731M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmtnumpending_403L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "purposeofcred_722M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "residualamount_1093A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "residualamount_127A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "residualamount_3940956A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "subjectrole_326M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "subjectrole_43M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "totalamount_503A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "totalamount_881A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "credit_bureau_b_2": {
+   "key": "credit_bureau_b_2",
+   "family": "credit_bureau_b",
+   "depth": 2,
+   "files": [
+    "train_credit_bureau_b_2.parquet"
+   ],
+   "rows": 1286755,
+   "cases": 36447,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group1",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group2",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmts_date_1107D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmts_dpdvalue_108P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmts_pmtsoverdue_635A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "debitcard_1": {
+   "key": "debitcard_1",
+   "family": "debitcard",
+   "depth": 1,
+   "files": [
+    "train_debitcard_1.parquet"
+   ],
+   "rows": 157302,
+   "cases": 111772,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "last180dayaveragebalance_704A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "last180dayturnover_1134A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "last30dayturnover_651A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group1",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "openingdate_857D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "deposit_1": {
+   "key": "deposit_1",
+   "family": "deposit",
+   "depth": 1,
+   "files": [
+    "train_deposit_1.parquet"
+   ],
+   "rows": 145086,
+   "cases": 105111,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "amount_416A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "contractenddate_991D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group1",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "openingdate_313D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "other_1": {
+   "key": "other_1",
+   "family": "other",
+   "depth": 1,
+   "files": [
+    "train_other_1.parquet"
+   ],
+   "rows": 51109,
+   "cases": 51109,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "amtdebitincoming_4809443A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "amtdebitoutgoing_4809440A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "amtdepositbalance_4809441A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "amtdepositincoming_4809444A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "amtdepositoutgoing_4809442A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group1",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "person_1": {
+   "key": "person_1",
+   "family": "person",
+   "depth": 1,
+   "files": [
+    "train_person_1.parquet"
+   ],
+   "rows": 2973991,
+   "cases": 1526659,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "birth_259D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "birthdate_87D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "childnum_185L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "contaddr_district_15M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "contaddr_matchlist_1032L",
+     "dtype": "Boolean",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "contaddr_smempladdr_334L",
+     "dtype": "Boolean",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "contaddr_zipcode_807M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "education_927M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "empl_employedfrom_271D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "empl_employedtotal_800L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "empl_industry_691L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "empladdr_district_926M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "empladdr_zipcode_114M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "familystate_447L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "gender_992L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "housetype_905L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "housingtype_772L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "incometype_1044T",
+     "dtype": "String",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "isreference_387L",
+     "dtype": "Boolean",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "language1_981M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "mainoccupationinc_384A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maritalst_703L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group1",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "personindex_1023L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "persontype_1072L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "persontype_792L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "registaddr_district_1083M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "registaddr_zipcode_184M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "relationshiptoclient_415T",
+     "dtype": "String",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "relationshiptoclient_642T",
+     "dtype": "String",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "remitter_829L",
+     "dtype": "Boolean",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "role_1084L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "role_993L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "safeguarantyflag_411L",
+     "dtype": "Boolean",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "sex_738L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "type_25L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "person_2": {
+   "key": "person_2",
+   "family": "person",
+   "depth": 2,
+   "files": [
+    "train_person_2.parquet"
+   ],
+   "rows": 1643410,
+   "cases": 1435105,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "addres_district_368M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "addres_role_871L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "addres_zip_823M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "conts_role_79M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "empls_economicalst_849M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "empls_employedfrom_796D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "empls_employer_name_740M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group1",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group2",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "relatedpersons_role_762T",
+     "dtype": "String",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "static_0": {
+   "key": "static_0",
+   "family": "static",
+   "depth": 0,
+   "files": [
+    "train_static_0_0.parquet",
+    "train_static_0_1.parquet"
+   ],
+   "rows": 1526659,
+   "cases": 1526659,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "actualdpdtolerance_344P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "amtinstpaidbefduel24m_4187115A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "annuity_780A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "annuitynextmonth_57A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "applicationcnt_361L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "applications30d_658L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "applicationscnt_1086L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "applicationscnt_464L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "applicationscnt_629L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "applicationscnt_867L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "avgdbddpdlast24m_3658932P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "avgdbddpdlast3m_4187120P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "avgdbdtollast24m_4525197P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "avgdpdtolclosure24_3658938P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "avginstallast24m_3658937A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "avglnamtstart24m_4525187A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "avgmaxdpdlast9m_3716943P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "avgoutstandbalancel6m_4187114A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "avgpmtlast12m_4525200A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "bankacctype_710L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "cardtype_51L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt12m_3712952L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt3m_3712950L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt6m_3712949L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt_100L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt_1022L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt_1071L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt_1130L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt_136L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt_157L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt_257L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt_304L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt_360L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt_493L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt_533L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt_887L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "clientscnt_946L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "cntincpaycont9m_3716944L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "cntpmts24_3658933L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "commnoinclast6m_3546845L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credamount_770A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "credtype_322L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "currdebt_22A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "currdebtcredtyperange_828A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "datefirstoffer_1144D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "datelastinstal40dpd_247D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "datelastunpaid_3546854D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "daysoverduetolerancedd_3976961L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "deferredmnthsnum_166L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "disbursedcredamount_1113A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "disbursementtype_67L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "downpmt_116A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dtlastpmtallstes_4499206D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "eir_270L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "equalitydataagreement_891L",
+     "dtype": "Boolean",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "equalityempfrom_62L",
+     "dtype": "Boolean",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "firstclxcampaign_1125D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "firstdatedue_489D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "homephncnt_628L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "inittransactionamount_650A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "inittransactioncode_186L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "interestrate_311L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "interestrategrace_34L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "isbidproduct_1095L",
+     "dtype": "Boolean",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "isbidproductrequest_292L",
+     "dtype": "Boolean",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "isdebitcard_729L",
+     "dtype": "Boolean",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastactivateddate_801D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastapplicationdate_877D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastapprcommoditycat_1041M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastapprcommoditytypec_5251766M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastapprcredamount_781A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastapprdate_640D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastcancelreason_561M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastdelinqdate_224D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastdependentsnum_448L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastotherinc_902A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastotherlnsexpense_631A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastrejectcommoditycat_161M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastrejectcommodtypec_5251769M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastrejectcredamount_222A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastrejectdate_50D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastrejectreason_759M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastrejectreasonclient_4145040M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastrepayingdate_696D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "lastst_736L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maininc_215A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "mastercontrelectronic_519L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "mastercontrexist_109L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxannuity_159A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxannuity_4075009A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdbddpdlast1m_3658939P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdbddpdtollast12m_3658940P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdbddpdtollast6m_4187119P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdebt4_972A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdpdfrom6mto36m_3546853P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdpdinstldate_3546855D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdpdinstlnum_3546846P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdpdlast12m_727P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdpdlast24m_143P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdpdlast3m_392P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdpdlast6m_474P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdpdlast9m_1059P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxdpdtolerance_374P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxinstallast24m_3658928A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxlnamtstart6m_4525199A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxoutstandbalancel12m_4187113A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maxpmtlast3m_4525190A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "mindbddpdlast24m_3658935P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "mindbdtollast24m_4525191P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "mobilephncnt_593L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "monthsannuity_845L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numactivecreds_622L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numactivecredschannel_414L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numactiverelcontr_750L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numcontrs3months_479L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numincomingpmts_3546848L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstlallpaidearly3d_817L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstls_657L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstlsallpaid_934L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstlswithdpd10_728L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstlswithdpd5_4187116L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstlswithoutdpd_562L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstmatpaidtearly2d_4499204L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstpaid_4499208L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstpaidearly3d_3546850L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstpaidearly3dest_4493216L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstpaidearly5d_1087L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstpaidearly5dest_4493211L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstpaidearly5dobd_4499205L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstpaidearly_338L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstpaidearlyest_4493214L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstpaidlastcontr_4325080L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstpaidlate1d_3546852L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstregularpaid_973L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstregularpaidest_4493210L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinsttopaygr_769L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinsttopaygrest_4493213L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstunpaidmax_3546851L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numinstunpaidmaxest_4493212L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numnotactivated_1143L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numpmtchanneldd_318L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numrejects9m_859L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "opencred_647L",
+     "dtype": "Boolean",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "paytype1st_925L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "paytype_783L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "payvacationpostpone_4187118D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pctinstlsallpaidearl3d_427L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pctinstlsallpaidlat10d_839L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pctinstlsallpaidlate1d_3546856L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pctinstlsallpaidlate4d_3546849L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pctinstlsallpaidlate6d_3546844L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmtnum_254L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "posfpd10lastmonth_333P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "posfpd30lastmonth_3976960P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "posfstqpd30lastmonth_3976962P",
+     "dtype": "Float64",
+     "suffix": "P",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "previouscontdistrict_112M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "price_1097A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "sellerplacecnt_915L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "sellerplacescnt_216L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "sumoutstandtotal_3546847A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "sumoutstandtotalest_4493215A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "totaldebt_9A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "totalsettled_863A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "totinstallast1m_4525188A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "twobodfilling_608L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "typesuite_864L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "validfrom_1069D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "static_cb_0": {
+   "key": "static_cb_0",
+   "family": "static_cb",
+   "depth": 0,
+   "files": [
+    "train_static_cb_0.parquet"
+   ],
+   "rows": 1500476,
+   "cases": 1500476,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "assignmentdate_238D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "assignmentdate_4527235D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "assignmentdate_4955616D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "birthdate_574D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "contractssum_5085716L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dateofbirth_337D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "dateofbirth_342D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "days120_123L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "days180_256L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "days30_165L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "days360_512L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "days90_310L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "description_5085714M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "education_1103M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "education_88M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "firstquarter_103L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "for3years_128L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "for3years_504L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "for3years_584L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "formonth_118L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "formonth_206L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "formonth_535L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "forquarter_1017L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "forquarter_462L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "forquarter_634L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "fortoday_1092L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "forweek_1077L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "forweek_528L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "forweek_601L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "foryear_618L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "foryear_818L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "foryear_850L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "fourthquarter_440L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maritalst_385M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "maritalst_893M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "numberofqueries_373L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmtaverage_3A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmtaverage_4527227A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmtaverage_4955615A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmtcount_4527229L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmtcount_4955617L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmtcount_693L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmtscount_423L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmtssum_45A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "requesttype_4525192L",
+     "dtype": "String",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "responsedate_1012D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "responsedate_4527233D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "responsedate_4917613D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "riskassesment_302T",
+     "dtype": "String",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "riskassesment_940T",
+     "dtype": "Float64",
+     "suffix": "T",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "secondquarter_766L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "thirdquarter_1082L",
+     "dtype": "Float64",
+     "suffix": "L",
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "tax_registry_a_1": {
+   "key": "tax_registry_a_1",
+   "family": "tax_registry_a",
+   "depth": 1,
+   "files": [
+    "train_tax_registry_a_1.parquet"
+   ],
+   "rows": 3275770,
+   "cases": 457934,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "amount_4527230A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "name_4527232M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group1",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "recorddate_4527225D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "tax_registry_b_1": {
+   "key": "tax_registry_b_1",
+   "family": "tax_registry_b",
+   "depth": 1,
+   "files": [
+    "train_tax_registry_b_1.parquet"
+   ],
+   "rows": 1107933,
+   "cases": 150732,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "amount_4917619A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "deductiondate_4917603D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "name_4917606M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group1",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  },
+  "tax_registry_c_1": {
+   "key": "tax_registry_c_1",
+   "family": "tax_registry_c",
+   "depth": 1,
+   "files": [
+    "train_tax_registry_c_1.parquet"
+   ],
+   "rows": 3343800,
+   "cases": 482265,
+   "duplicate_keys": 0,
+   "orphan_cases": 0,
+   "columns": [
+    {
+     "name": "case_id",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "employername_160M",
+     "dtype": "String",
+     "suffix": "M",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "num_group1",
+     "dtype": "Int64",
+     "suffix": null,
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "pmtamount_36A",
+     "dtype": "Float64",
+     "suffix": "A",
+     "described": true,
+     "chunk_dtypes": null
+    },
+    {
+     "name": "processingdate_168D",
+     "dtype": "String",
+     "suffix": "D",
+     "described": true,
+     "chunk_dtypes": null
+    }
+   ],
+   "suffix_errors": [],
+   "dtype_conflicts": [],
+   "undescribed": []
+  }
+ }
+}

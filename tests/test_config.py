@@ -1,4 +1,6 @@
 import copy
+import json
+from pathlib import Path
 
 import pytest
 import yaml
@@ -121,3 +123,55 @@ def test_relative_paths_resolve_against_the_repo_root(repo_root, tmp_path):
     assert find_root(repo_root / "configs" / "config.yaml") == repo_root
     assert resolve_path(".cache/llm", tmp_path) == tmp_path / ".cache" / "llm"
     assert resolve_path(tmp_path / "abs", repo_root) == tmp_path / "abs"
+
+
+# --- protected attributes against the real schema (C4.1) -------------------
+
+C4_RESULTS = Path(__file__).resolve().parents[1] / "results" / "c04"
+
+
+@pytest.fixture(scope="module")
+def c04():
+    if not (C4_RESULTS / "eda_summary.json").is_file():
+        pytest.skip("results/c04 not present")
+    summary = json.loads((C4_RESULTS / "eda_summary.json").read_text())
+    registry = json.loads((C4_RESULTS / "schema_registry.json").read_text())
+    columns = {c["name"] for fam in registry["families"].values() for c in fam["columns"]}
+    return summary, columns
+
+
+def test_every_protected_column_exists_in_the_real_schema(repo_root, c04):
+    cfg = load_config(repo_root / "configs" / "config.yaml").protected
+    _, columns = c04
+    missing = {*cfg.columns, cfg.disability_recode_column} - columns
+    assert not missing, f"configured protected columns not in the data: {sorted(missing)}"
+
+
+def test_every_column_the_inventory_flagged_has_a_decision(repo_root, c04):
+    """A new EDA run that flags a column nobody has triaged fails here."""
+    cfg = load_config(repo_root / "configs" / "config.yaml").protected
+    summary, _ = c04
+    decided = {*cfg.columns, cfg.disability_recode_column, *cfg.reviewed_not_protected}
+    flagged = {p["column"] for p in summary["protected_inventory"]}
+    assert flagged <= decided, f"undecided: {sorted(flagged - decided)}"
+
+
+def test_both_sex_columns_are_excluded(repo_root, c04):
+    summary, _ = c04
+    cfg = load_config(repo_root / "configs" / "config.yaml").protected
+    for qualified in summary["sex_or_gender_columns"]:
+        assert qualified.split(".", 1)[1] in cfg.columns
+
+
+@pytest.mark.parametrize(
+    ("dotted", "value"),
+    [
+        ("protected.columns", ["sex_738L", "sex_738L"]),
+        ("protected.columns", ["incometype_1044T"]),          # the recode column is a feature
+        ("protected.reviewed_not_protected", ["sex_738L"]),   # cannot be both
+        ("protected.disability_recode_value", "HANDICAPPED"),
+    ],
+)
+def test_inconsistent_protected_lists_are_rejected(raw, dotted, value):
+    with pytest.raises(ValidationError):
+        Config.model_validate(_with(raw, dotted, value))
